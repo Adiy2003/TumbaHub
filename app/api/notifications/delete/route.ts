@@ -1,0 +1,39 @@
+import { NextResponse, NextRequest } from 'next/server'
+import { auth } from '@/auth'
+import { adminDb } from '@/lib/firebase-admin'
+
+export const dynamic = 'force-dynamic'
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth()
+
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { notificationId } = await request.json()
+
+    if (!notificationId) {
+      return NextResponse.json(
+        { error: 'notificationId is required' },
+        { status: 400 }
+      )
+    }
+
+    await adminDb
+      .collection('users')
+      .doc(session.user.id)
+      .collection('notifications')
+      .doc(notificationId)
+      .delete()
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Failed to delete notification:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete notification' },
+      { status: 500 }
+    )
+  }
+}

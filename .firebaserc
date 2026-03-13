@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "default": "tumbahub",
+    "dev": "tumbahub",
+    "prod": "tumbahub-prod"
+  },
+  "targets": {},
+  "etags": {}
+}

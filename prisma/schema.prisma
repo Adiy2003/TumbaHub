@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  password  String
+  balance   Int        @default(1000)
+  isAdmin   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  sentTransactions      Transaction[] @relation("from")
+  receivedTransactions  Transaction[] @relation("to")
+
+  @@map("users")
+}
+
+model Transaction {
+  id        String     @id @default(cuid())
+  fromId    String
+  from      User       @relation("from", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        User       @relation("to", fields: [toId], references: [id], onDelete: Cascade)
+  amount    Int
+  action    String     // e.g., "long ride", "bought coffee", etc.
+  description String?
+  createdAt DateTime   @default(now())
+
+  @@map("transactions")
+}
+
+model Action {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  amount    Int        // positive for earning, negative for losing
+  description String?
+  createdAt DateTime   @default(now())
+
+  @@map("actions")
+}
+
+model ShopItem {
+  id        String     @id @default(cuid())
+  name      String
+  price     Int        // cost in TumbaCoins
+  description String?
+  emoji     String     @default("🛍️")
+  createdAt DateTime   @default(now())
+
+  @@map("shop_items")
+}
+

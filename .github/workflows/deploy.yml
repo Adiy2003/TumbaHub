@@ -26,12 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Create Firebase service account file
+      # 4. Create Firebase service account file from base64
       - name: Create Firebase service account
         env:
-          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_KEY_B64: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
         run: |
-          node -e "const fs = require('fs'); fs.writeFileSync('firebase-service-account.json', process.env.FIREBASE_SERVICE_ACCOUNT_KEY);"
+          echo "$FIREBASE_SERVICE_ACCOUNT_KEY_B64" | base64 -d > firebase-service-account.json
+          cat firebase-service-account.json
 
       # 5. Create production environment file
       - name: Create .env.production.local

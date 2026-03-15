@@ -27,10 +27,16 @@ jobs:
         run: npm ci
 
       # 4. Write Firebase Service Account
-      - name: Write Firebase Service Account
+      - name: Write Firebase Service Account and Prepare Deploy
         run: |
           # Decode the base64-encoded service account secret and write to file
           echo '${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}' | base64 -d > firebase-service-account.json
+          
+          # Output as env for deploy action
+          DECODED_SA=$(cat firebase-service-account.json)
+          echo "FIREBASE_SA_JSON<<EOF" >> $GITHUB_ENV
+          echo "$DECODED_SA" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       # 5. Create production environment file
       - name: Create .env.production.local
@@ -68,6 +74,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
+          firebaseServiceAccount: ${{ env.FIREBASE_SA_JSON }}
           projectId: tumbahub-prod
           channelId: live

@@ -31,7 +31,7 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
         run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT_KEY" > firebase-service-account.json
+          node -e "const fs = require('fs'); fs.writeFileSync('firebase-service-account.json', process.env.FIREBASE_SERVICE_ACCOUNT_KEY);"
 
       # 5. Create production environment file
       - name: Create .env.production.local

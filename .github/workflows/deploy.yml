@@ -26,7 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Create production environment file
+      # 4. Write Firebase Service Account
+      - name: Write Firebase Service Account
+        run: |
+          echo '${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}' > firebase-service-account.json
+
+      # 5. Create production environment file
       - name: Create .env.production.local
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.PROD_NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -40,10 +45,6 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.PROD_NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ secrets.PROD_NEXTAUTH_URL }}
         run: |
-          # Base64 encode the service account JSON to preserve special characters and newlines
-          echo "${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}" | base64 -w 0 > /tmp/sa_b64.txt
-          SERVICE_ACCOUNT_B64=$(cat /tmp/sa_b64.txt)
-          
           cat > .env.production.local << 'EOF'
           NEXT_PUBLIC_FIREBASE_API_KEY=${{ env.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -53,16 +54,15 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
           FIREBASE_PROJECT_ID=${{ env.FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET=${{ env.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_SERVICE_ACCOUNT_KEY=${SERVICE_ACCOUNT_B64}
           NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL=${{ env.NEXTAUTH_URL }}
           EOF
 
-      # 5. Build Next.js app
+      # 6. Build Next.js app
       - name: Build Next.js app
         run: npm run build
 
-      # 6. Deploy to Firebase Hosting (with Cloud Functions for SSR)
+      # 7. Deploy to Firebase Hosting
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

@@ -21,46 +21,33 @@ try {
   // Try to load from environment variable first (CI/CD environments)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     console.log('[FIREBASE-ADMIN] Loading from FIREBASE_SERVICE_ACCOUNT_KEY env var...')
-    const envValue = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    
     try {
-      // Try base64 decode first (for GitHub Actions)
-      console.log('[FIREBASE-ADMIN] Trying to decode as base64...')
-      const decoded = Buffer.from(envValue, 'base64').toString('utf-8')
-      serviceAccount = JSON.parse(decoded)
-      console.log('[FIREBASE-ADMIN] ✓ Service account decoded from base64, projectId:', serviceAccount.project_id)
-    } catch (base64Error) {
-      try {
-        // Try plain JSON next
-        console.log('[FIREBASE-ADMIN] Base64 decode failed, trying plain JSON...')
-        serviceAccount = JSON.parse(envValue)
-        console.log('[FIREBASE-ADMIN] ✓ Service account parsed from plain JSON, projectId:', serviceAccount.project_id)
-      } catch (jsonError) {
-        // If JSON fails, treat as file path
-        console.log('[FIREBASE-ADMIN] JSON parse failed, treating as file path...')
-        if (!fs.existsSync(envValue)) {
-          throw new Error(`Service account: neither valid JSON/base64 nor file found at ${envValue}`)
-        }
-        serviceAccount = JSON.parse(fs.readFileSync(envValue, 'utf-8'))
-        console.log('[FIREBASE-ADMIN] ✓ Service account loaded from file, projectId:', serviceAccount.project_id)
-      }
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+      console.log('[FIREBASE-ADMIN] ✓ Service account parsed from env var, projectId:', serviceAccount.project_id)
+    } catch (parseError) {
+      console.log('[FIREBASE-ADMIN] Could not parse env var as JSON, ignoring...')
     }
-  } else {
-    // Fall back to file in project root
+  }
+  
+  // Try file in project root (used by GitHub Actions workflow)
+  if (!serviceAccount) {
     const servicePath = './firebase-service-account.json'
     console.log('[FIREBASE-ADMIN] Checking for file at:', servicePath)
     
-    if (!fs.existsSync(servicePath)) {
-      console.error('[FIREBASE-ADMIN] ❌ Service account file not found!')
-      throw new Error(
-        `Service account key not found. ` +
-        `Please ensure firebase-service-account.json exists in project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var with JSON content.`
-      )
+    if (fs.existsSync(servicePath)) {
+      console.log('[FIREBASE-ADMIN] ✓ Service account file found, reading...')
+      serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
+      console.log('[FIREBASE-ADMIN] ✓ Service account parsed, projectId:', serviceAccount.project_id)
     }
-    
-    console.log('[FIREBASE-ADMIN] ✓ Service account file found, reading...')
-    serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
-    console.log('[FIREBASE-ADMIN] ✓ Service account parsed, projectId:', serviceAccount.project_id)
+  }
+  
+  // Fallback to service account key store (if available)
+  if (!serviceAccount) {
+    console.error('[FIREBASE-ADMIN] ❌ Service account not found!')
+    throw new Error(
+      `Service account key not found. ` +
+      `Please ensure firebase-service-account.json exists in project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.`
+    )
   }
   
   console.log('[FIREBASE-ADMIN] Initializing Firebase app...')

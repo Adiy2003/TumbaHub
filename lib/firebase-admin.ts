@@ -15,21 +15,43 @@ try {
   console.log('[FIREBASE-ADMIN] ✓ Firebase app already initialized')
 } catch (e) {
   console.log('[FIREBASE-ADMIN] Firebase app not initialized yet, initializing...')
-  // Initialize with service account credentials
-  const servicePath = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || './firebase-service-account.json'
-  console.log('[FIREBASE-ADMIN] Service account path:', servicePath)
   
-  if (!fs.existsSync(servicePath)) {
-    console.error('[FIREBASE-ADMIN] ❌ Service account file not found!')
-    throw new Error(
-      `Service account key not found at ${servicePath}. ` +
-      `Please ensure firebase-service-account.json exists in the project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.`
-    )
+  let serviceAccount
+  
+  // Try to load from environment variable first (CI/CD environments)
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    console.log('[FIREBASE-ADMIN] Loading from FIREBASE_SERVICE_ACCOUNT_KEY env var...')
+    try {
+      // If it's a JSON string, parse it directly
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+      console.log('[FIREBASE-ADMIN] ✓ Service account parsed from env var, projectId:', serviceAccount.project_id)
+    } catch (parseError) {
+      // If it fails, might be a file path
+      console.log('[FIREBASE-ADMIN] Not valid JSON, treating as file path...')
+      const servicePath = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+      if (!fs.existsSync(servicePath)) {
+        throw new Error(`Service account file not found at ${servicePath}`)
+      }
+      serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
+      console.log('[FIREBASE-ADMIN] ✓ Service account loaded from file, projectId:', serviceAccount.project_id)
+    }
+  } else {
+    // Fall back to file in project root
+    const servicePath = './firebase-service-account.json'
+    console.log('[FIREBASE-ADMIN] Checking for file at:', servicePath)
+    
+    if (!fs.existsSync(servicePath)) {
+      console.error('[FIREBASE-ADMIN] ❌ Service account file not found!')
+      throw new Error(
+        `Service account key not found. ` +
+        `Please ensure firebase-service-account.json exists in project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var with JSON content.`
+      )
+    }
+    
+    console.log('[FIREBASE-ADMIN] ✓ Service account file found, reading...')
+    serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
+    console.log('[FIREBASE-ADMIN] ✓ Service account parsed, projectId:', serviceAccount.project_id)
   }
-  
-  console.log('[FIREBASE-ADMIN] ✓ Service account file found, reading...')
-  const serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
-  console.log('[FIREBASE-ADMIN] ✓ Service account parsed, projectId:', serviceAccount.project_id)
   
   console.log('[FIREBASE-ADMIN] Initializing Firebase app...')
   app = admin.initializeApp({

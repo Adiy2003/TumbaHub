@@ -54,3 +54,15 @@ jobs:
           NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL=${{ env.NEXTAUTH_URL }}
           EOF
+
+      # 5. Build Next.js app
+        run: npm run build
+
+      # 6. Deploy to Firebase Hosting (with Cloud Functions for SSR)
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
+          projectId: tumbahub-prod
+          channelId: live

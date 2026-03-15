@@ -37,10 +37,13 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.PROD_NEXT_PUBLIC_FIREBASE_APP_ID }}
           FIREBASE_PROJECT_ID: ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
           NEXTAUTH_SECRET: ${{ secrets.PROD_NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ secrets.PROD_NEXTAUTH_URL }}
         run: |
+          # Base64 encode the service account JSON to preserve special characters and newlines
+          echo "${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}" | base64 -w 0 > /tmp/sa_b64.txt
+          SERVICE_ACCOUNT_B64=$(cat /tmp/sa_b64.txt)
+          
           cat > .env.production.local << 'EOF'
           NEXT_PUBLIC_FIREBASE_API_KEY=${{ env.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
@@ -50,7 +53,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
           FIREBASE_PROJECT_ID=${{ env.FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET=${{ env.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_SERVICE_ACCOUNT_KEY=${{ env.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_KEY=${SERVICE_ACCOUNT_B64}
           NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL=${{ env.NEXTAUTH_URL }}
           EOF

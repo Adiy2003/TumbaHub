@@ -21,19 +21,29 @@ try {
   // Try to load from environment variable first (CI/CD environments)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     console.log('[FIREBASE-ADMIN] Loading from FIREBASE_SERVICE_ACCOUNT_KEY env var...')
+    const envValue = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    
     try {
-      // If it's a JSON string, parse it directly
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-      console.log('[FIREBASE-ADMIN] ✓ Service account parsed from env var, projectId:', serviceAccount.project_id)
-    } catch (parseError) {
-      // If it fails, might be a file path
-      console.log('[FIREBASE-ADMIN] Not valid JSON, treating as file path...')
-      const servicePath = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-      if (!fs.existsSync(servicePath)) {
-        throw new Error(`Service account file not found at ${servicePath}`)
+      // Try base64 decode first (for GitHub Actions)
+      console.log('[FIREBASE-ADMIN] Trying to decode as base64...')
+      const decoded = Buffer.from(envValue, 'base64').toString('utf-8')
+      serviceAccount = JSON.parse(decoded)
+      console.log('[FIREBASE-ADMIN] ✓ Service account decoded from base64, projectId:', serviceAccount.project_id)
+    } catch (base64Error) {
+      try {
+        // Try plain JSON next
+        console.log('[FIREBASE-ADMIN] Base64 decode failed, trying plain JSON...')
+        serviceAccount = JSON.parse(envValue)
+        console.log('[FIREBASE-ADMIN] ✓ Service account parsed from plain JSON, projectId:', serviceAccount.project_id)
+      } catch (jsonError) {
+        // If JSON fails, treat as file path
+        console.log('[FIREBASE-ADMIN] JSON parse failed, treating as file path...')
+        if (!fs.existsSync(envValue)) {
+          throw new Error(`Service account: neither valid JSON/base64 nor file found at ${envValue}`)
+        }
+        serviceAccount = JSON.parse(fs.readFileSync(envValue, 'utf-8'))
+        console.log('[FIREBASE-ADMIN] ✓ Service account loaded from file, projectId:', serviceAccount.project_id)
       }
-      serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
-      console.log('[FIREBASE-ADMIN] ✓ Service account loaded from file, projectId:', serviceAccount.project_id)
     }
   } else {
     // Fall back to file in project root

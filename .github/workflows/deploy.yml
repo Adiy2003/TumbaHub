@@ -19,14 +19,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4. Create production environment file
+      # 4. Create Firebase service account file
+      - name: Create Firebase service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_KEY" > firebase-service-account.json
+
+      # 5. Create production environment file
       - name: Create .env.production.local
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.PROD_NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -37,7 +44,6 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.PROD_NEXT_PUBLIC_FIREBASE_APP_ID }}
           FIREBASE_PROJECT_ID: ${{ secrets.PROD_FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET: ${{ secrets.PROD_FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}
           NEXTAUTH_SECRET: ${{ secrets.PROD_NEXTAUTH_SECRET }}
           NEXTAUTH_URL: ${{ secrets.PROD_NEXTAUTH_URL }}
         run: |
@@ -50,16 +56,15 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID=${{ env.NEXT_PUBLIC_FIREBASE_APP_ID }}
           FIREBASE_PROJECT_ID=${{ env.FIREBASE_PROJECT_ID }}
           FIREBASE_STORAGE_BUCKET=${{ env.FIREBASE_STORAGE_BUCKET }}
-          FIREBASE_SERVICE_ACCOUNT_KEY=${{ env.FIREBASE_SERVICE_ACCOUNT_KEY }}
           NEXTAUTH_SECRET=${{ env.NEXTAUTH_SECRET }}
           NEXTAUTH_URL=${{ env.NEXTAUTH_URL }}
           EOF
 
-      # 5. Build the Next.js app
+      # 6. Build the Next.js app
       - name: Build Next.js app
         run: npm run build
 
-      # 6. Deploy to Firebase Hosting
+      # 7. Deploy to Firebase Hosting
       - name: Deploy to Firebase Hosting
         run: npx firebase-tools deploy --only hosting --project tumbahub-prod
         env:

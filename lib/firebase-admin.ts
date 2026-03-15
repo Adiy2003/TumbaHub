@@ -4,65 +4,81 @@ import type { Auth } from 'firebase-admin/auth'
 import type { Firestore } from 'firebase-admin/firestore'
 import type { Storage } from 'firebase-admin/storage'
 
-console.log('[FIREBASE-ADMIN] Initializing Firebase Admin SDK...')
+let app: admin.app.App | undefined
+let adminAuth: Auth | undefined
+let adminDb: Firestore | undefined
+let adminStorage: Storage | undefined
 
-let app: admin.app.App
-
+// Initialize Firebase - wrapped in try-catch so build doesn't fail if service account doesn't exist
 try {
+  console.log('[FIREBASE-ADMIN] Initializing Firebase Admin SDK...')
+  
   // Check if already initialized
-  console.log('[FIREBASE-ADMIN] Checking if Firebase app already initialized...')
-  app = admin.app()
-  console.log('[FIREBASE-ADMIN] ✓ Firebase app already initialized')
-} catch (e) {
-  console.log('[FIREBASE-ADMIN] Firebase app not initialized yet, initializing...')
-  
-  let serviceAccount
-  
-  // Try to load from environment variable first (CI/CD environments)
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    console.log('[FIREBASE-ADMIN] Loading from FIREBASE_SERVICE_ACCOUNT_KEY env var...')
-    try {
-      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-      console.log('[FIREBASE-ADMIN] ✓ Service account parsed from env var, projectId:', serviceAccount.project_id)
-    } catch (parseError) {
-      console.log('[FIREBASE-ADMIN] Could not parse env var as JSON, ignoring...')
-    }
-  }
-  
-  // Try file in project root (used by GitHub Actions workflow)
-  if (!serviceAccount) {
-    const servicePath = './firebase-service-account.json'
-    console.log('[FIREBASE-ADMIN] Checking for file at:', servicePath)
+  try {
+    app = admin.app()
+    console.log('[FIREBASE-ADMIN] ✓ Firebase app already initialized')
+  } catch (e) {
+    let serviceAccount
     
-    if (fs.existsSync(servicePath)) {
-      console.log('[FIREBASE-ADMIN] ✓ Service account file found, reading...')
-      serviceAccount = JSON.parse(fs.readFileSync(servicePath, 'utf-8'))
-      console.log('[FIREBASE-ADMIN] ✓ Service account parsed, projectId:', serviceAccount.project_id)
+    // Try env var first
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+        console.log('[FIREBASE-ADMIN] ✓ Service account from env var')
+      } catch (err) {
+        console.log('[FIREBASE-ADMIN] Env var not JSON')
+      }
+    }
+    
+    // Try file
+    if (!serviceAccount) {
+      const filePath = './firebase-service-account.json'
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8')
+        serviceAccount = JSON.parse(content)
+        console.log('[FIREBASE-ADMIN] ✓ Service account from file')
+      }
+    }
+    
+    if (serviceAccount) {
+      app = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: serviceAccount.project_id,
+        storageBucket: serviceAccount.project_id + '.appspot.com',
+      })
+    } else {
+      console.warn('[FIREBASE-ADMIN] ⚠ Service account not found - Firebase may not be initialized (ok during build)')
     }
   }
   
-  // Fallback to service account key store (if available)
-  if (!serviceAccount) {
-    console.error('[FIREBASE-ADMIN] ❌ Service account not found!')
-    throw new Error(
-      `Service account key not found. ` +
-      `Please ensure firebase-service-account.json exists in project root or set FIREBASE_SERVICE_ACCOUNT_KEY env var.`
-    )
+  if (app) {
+    adminAuth = admin.auth(app)
+    adminDb = admin.firestore(app)
+    adminStorage = admin.storage(app)
+    console.log('[FIREBASE-ADMIN] ✓ Firebase initialized successfully')
   }
-  
-  console.log('[FIREBASE-ADMIN] Initializing Firebase app...')
-  app = admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    projectId: serviceAccount.project_id,
-    storageBucket: serviceAccount.project_id + '.appspot.com',
-  })
-  console.log('[FIREBASE-ADMIN] ✓ Firebase app initialized')
+} catch (err) {
+  console.error('[FIREBASE-ADMIN] ❌ Initialization error:', err instanceof Error ? err.message : String(err))
+  console.warn('[FIREBASE-ADMIN] ⚠ Firebase will be unavailable (may be ok during build)')
 }
 
-console.log('[FIREBASE-ADMIN] Getting auth and firestore references...')
-export const adminAuth: Auth = admin.auth(app)
-export const adminDb: Firestore = admin.firestore(app)
-export const adminStorage: Storage = admin.storage(app)
-console.log('[FIREBASE-ADMIN] ✓ Firebase Admin SDK ready')
+// Export with fallback errors at runtime
+export { adminAuth, adminDb, adminStorage }
+export const getAdminAuth = (): Auth => {
+  if (!adminAuth) throw new Error('Firebase Auth not initialized')
+  return adminAuth
+}
+
+export const getAdminDb = (): Firestore => {
+  if (!adminDb) throw new Error('Firebase Firestore not initialized')
+  return adminDb
+}
+
+export const getAdminStorage = (): Storage => {
+  if (!adminStorage) throw new Error('Firebase Storage not initialized')
+  return adminStorage
+}
+
+export default app
 
 export default app

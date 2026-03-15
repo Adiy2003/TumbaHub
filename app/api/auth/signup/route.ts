@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
+export const runtime = 'nodejs'
+
 console.log('[STARTUP] Firebase admin imported in signup route')
 
 export async function POST(request: Request) {

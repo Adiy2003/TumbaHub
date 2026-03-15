@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { adminDb } from '@/lib/firebase-admin'
 
+export const runtime = 'nodejs'
+
 export async function POST(request: Request) {
   try {
     const session = await auth()

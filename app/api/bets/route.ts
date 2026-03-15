@@ -4,6 +4,8 @@ import { adminDb } from '@/lib/firebase-admin'
 import { notifyAllUsers } from '@/lib/notifications'
 import type { DocumentSnapshot } from 'firebase-admin/firestore'
 
+export const runtime = 'nodejs'
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams

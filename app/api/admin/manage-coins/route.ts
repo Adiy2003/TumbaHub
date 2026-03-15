@@ -3,6 +3,8 @@ import { auth } from '@/auth'
 import { adminDb } from '@/lib/firebase-admin'
 import { notifyAllUsers } from '@/lib/notifications'
 
+export const runtime = 'nodejs'
+
 export async function POST(request: Request) {
   try {
     const session = await auth()

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 
+export const runtime = 'nodejs'
+
 export async function GET() {
   try {
     const snapshot = await adminDb

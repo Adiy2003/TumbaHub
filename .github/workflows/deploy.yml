@@ -29,7 +29,8 @@ jobs:
       # 4. Write Firebase Service Account
       - name: Write Firebase Service Account
         run: |
-          echo '${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}' > firebase-service-account.json
+          # Decode the base64-encoded service account secret and write to file
+          echo '${{ secrets.PROD_FIREBASE_SERVICE_ACCOUNT_KEY }}' | base64 -d > firebase-service-account.json
 
       # 5. Create production environment file
       - name: Create .env.production.local

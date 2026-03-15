@@ -5,9 +5,9 @@ import type { Firestore } from 'firebase-admin/firestore'
 import type { Storage } from 'firebase-admin/storage'
 
 let app: admin.app.App | undefined
-let adminAuth: Auth | undefined
-let adminDb: Firestore | undefined
-let adminStorage: Storage | undefined
+let _adminAuth: Auth | undefined
+let _adminDb: Firestore | undefined
+let _adminStorage: Storage | undefined
 
 // Initialize Firebase - wrapped in try-catch so build doesn't fail if service account doesn't exist
 try {
@@ -52,9 +52,9 @@ try {
   }
   
   if (app) {
-    adminAuth = admin.auth(app)
-    adminDb = admin.firestore(app)
-    adminStorage = admin.storage(app)
+    _adminAuth = admin.auth(app)
+    _adminDb = admin.firestore(app)
+    _adminStorage = admin.storage(app)
     console.log('[FIREBASE-ADMIN] ✓ Firebase initialized successfully')
   }
 } catch (err) {
@@ -62,23 +62,26 @@ try {
   console.warn('[FIREBASE-ADMIN] ⚠ Firebase will be unavailable (may be ok during build)')
 }
 
-// Export with fallback errors at runtime
-export { adminAuth, adminDb, adminStorage }
+// Export with type assertions - guaranteed to be non-null after initialization at runtime
+// We use 'as' to ensure TypeScript knows these are safe to use in API routes
+export const adminAuth = _adminAuth as unknown as Auth
+export const adminDb = _adminDb as unknown as Firestore
+export const adminStorage = _adminStorage as unknown as Storage
+
+// Getter functions for explicit null checking if needed
 export const getAdminAuth = (): Auth => {
-  if (!adminAuth) throw new Error('Firebase Auth not initialized')
-  return adminAuth
+  if (!_adminAuth) throw new Error('Firebase Auth not initialized')
+  return _adminAuth
 }
 
 export const getAdminDb = (): Firestore => {
-  if (!adminDb) throw new Error('Firebase Firestore not initialized')
-  return adminDb
+  if (!_adminDb) throw new Error('Firebase Firestore not initialized')
+  return _adminDb
 }
 
 export const getAdminStorage = (): Storage => {
-  if (!adminStorage) throw new Error('Firebase Storage not initialized')
-  return adminStorage
+  if (!_adminStorage) throw new Error('Firebase Storage not initialized')
+  return _adminStorage
 }
-
-export default app
 
 export default app

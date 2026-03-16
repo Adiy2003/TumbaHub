@@ -1,3 +1,8 @@
+/** 
+ * Firebase Admin SDK initialization
+ * This module requires Node.js runtime and cannot run on Edge runtime
+ */
+
 import * as admin from 'firebase-admin'
 import * as fs from 'fs'
 import type { Auth } from 'firebase-admin/auth'

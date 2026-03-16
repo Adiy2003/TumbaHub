@@ -5,6 +5,8 @@ import { notifyAllUsers } from '@/lib/notifications'
 import type { DocumentSnapshot } from 'firebase-admin/firestore'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET(request: NextRequest) {
   try {

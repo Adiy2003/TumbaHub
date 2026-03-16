@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
 export const runtime = 'nodejs'
-
-console.log('[STARTUP] Firebase admin imported in signup route')
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function POST(request: Request) {
   console.log('[SIGNUP] ========== REQUEST STARTED ==========')

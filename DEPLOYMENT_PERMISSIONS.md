@@ -4,9 +4,14 @@
 
 To deploy TumbaHub to Firebase Hosting, the service account used in GitHub Actions needs the following roles:
 
-1. **roles/firebasehosting.admin** - Required for Firebase Hosting deployments
-2. **roles/serviceusage.serviceUsageAdmin** - Required for enabling APIs and experiments
-3. **roles/cloudbuild.builds.editor** - Required for building Cloud Functions (for dynamic routes)
+### Critical (Must Have)
+1. **roles/serviceusage.serviceUsageConsumer** - MUST HAVE: Allows the service account to use Google APIs (explicitly required by deploy error)
+2. **roles/firebasehosting.admin** - Required for Firebase Hosting deployments
+3. **roles/firebase.admin** - Broad Firebase access (commonly required for Hosting + backend)
+
+### Optional (Depending on Features)
+- **roles/cloudbuild.builds.editor** - For Cloud Function deployments
+- **roles/cloudfunctions.admin** - For Cloud Function deployments
 
 ## Setup Steps
 
@@ -31,15 +36,19 @@ To deploy TumbaHub to Firebase Hosting, the service account used in GitHub Actio
 
 Assign these roles one at a time by selecting each from the "Select a role" dropdown:
 
-1. **Firebase Hosting Admin**
+1. **Service Usage Consumer** (CRITICAL)
+   - Search for: `serviceusage.serviceUsageConsumer`
+   - Select: `Service Usage Consumer`
+
+2. **Firebase Hosting Admin** (REQUIRED)
    - Search for: `firebasehosting`
    - Select: `Firebase Hosting Admin`
 
-2. **Service Usage Admin**
-   - Search for: `serviceusage`
-   - Select: `Service Usage Admin`
+3. **Firebase Admin** (REQUIRED)
+   - Search for: `firebase.admin`
+   - Select: `Firebase Admin`
 
-3. **Cloud Build Editor** (for dynamic routes)
+4. **Cloud Build Editor** (Optional, for Cloud Functions)
    - Search for: `cloudbuild`
    - Select: `Cloud Build Editor`
 

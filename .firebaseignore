@@ -1,0 +1,15 @@
+# Build artifacts
+.next/
+.git/
+node_modules/
+.env*
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build meta files
+*.map
+.body
+.rsc

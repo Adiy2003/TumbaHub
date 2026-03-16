@@ -53,6 +53,11 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ./firebase-service-account.json
         run: firebase experiments:enable webframeworks --project tumbahub-prod
 
+      - name: Verify service account
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ./firebase-service-account.json
+        run: firebase projects:list
+
       - name: Deploy to Firebase Hosting
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ./firebase-service-account.json
@@ -60,4 +65,5 @@ jobs:
           firebase deploy \
             --project tumbahub-prod \
             --only hosting \
-            --non-interactive
+            --non-interactive \
+            --debug

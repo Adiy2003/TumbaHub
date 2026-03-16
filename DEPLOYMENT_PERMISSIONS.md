@@ -13,6 +13,24 @@ To deploy TumbaHub to Firebase Hosting, the service account used in GitHub Actio
 - **roles/cloudbuild.builds.editor** - For Cloud Function deployments
 - **roles/cloudfunctions.admin** - For Cloud Function deployments
 
+## Additional Setup: Link Web App to Hosting Site
+
+Firebase Hosting requires a Web app to be linked to the hosting site for Next.js deployments.
+
+### Steps to Link Web App
+
+1. Go to [Firebase Console](https://console.firebase.google.com/) → **tumbahub-prod** project
+2. Navigate to **Hosting** → Click your hosting site (usually `tumbahub-prod`)
+3. Go to **Settings** → **Linked apps**
+4. If no Web app is linked, click **Link app** and select or create a Web app
+5. If you need to create a new app:
+   - Select **Web** app type
+   - Give it a name like "tumbahub-prod-web"
+   - Click **Register app**
+6. The Web app will be linked to the hosting site automatically
+
+This resolves the warning: "No Firebase app associated with site ***"
+
 ## Setup Steps
 
 ### 1. Go to Google Cloud Console

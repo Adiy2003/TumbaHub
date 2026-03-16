@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
+import Image from 'next/image'
 
 interface User {
   id: string
@@ -382,12 +383,13 @@ export default function ProfilePage() {
             {/* Profile Header */}
             <div className="bg-dark-800 rounded-xl border border-dark-700 p-8 mb-8">
               <div className="flex items-center gap-6 mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="w-20 h-20 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden relative">
                   {user.profilePicture ? (
-                    <img 
+                    <Image 
                       src={user.profilePicture} 
                       alt={user.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   ) : (
                     <span className="text-3xl">👤</span>
@@ -742,10 +744,12 @@ export default function ProfilePage() {
                 </label>
                 {previewUrl && (
                   <div className="mb-3">
-                    <img 
+                    <Image 
                       src={previewUrl} 
                       alt="Preview"
-                      className="w-20 h-20 rounded-full object-cover border border-coins"
+                      width={80}
+                      height={80}
+                      className="rounded-full object-cover border border-coins"
                     />
                   </div>
                 )}

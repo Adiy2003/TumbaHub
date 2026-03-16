@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 interface User {
   id: string
@@ -95,12 +96,13 @@ export default function LeaderboardPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                           {user.profilePicture ? (
-                            <img 
+                            <Image 
                               src={user.profilePicture} 
                               alt={user.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
                             />
                           ) : (
                             <span className="text-lg">👤</span>

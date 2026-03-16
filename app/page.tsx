@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import BalanceCard from '@/components/BalanceCard'
 
 interface User {
@@ -114,12 +115,13 @@ export default function Home() {
             <div className="bg-gradient-to-br from-dark-800 to-dark-700 rounded-xl border border-coins/30 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div className="w-12 h-12 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
                     {taxiDriver.profilePicture ? (
-                      <img 
+                      <Image 
                         src={taxiDriver.profilePicture} 
                         alt={taxiDriver.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <span className="text-xl">👤</span>

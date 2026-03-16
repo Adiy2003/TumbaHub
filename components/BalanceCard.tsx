@@ -1,4 +1,5 @@
 import { CoinIcon } from './CoinIcon'
+import Image from 'next/image'
 
 interface User {
   id: string
@@ -23,12 +24,13 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="w-14 h-14 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
             {user.profilePicture ? (
-              <img 
+              <Image 
                 src={user.profilePicture} 
                 alt={user.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
             ) : (
               <span className="text-2xl">👤</span>

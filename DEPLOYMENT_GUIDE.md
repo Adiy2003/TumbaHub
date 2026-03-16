@@ -1,33 +1,67 @@
 # TumbaHub Deployment Guide
 
-Deploy TumbaHub to Firebase Hosting with separate dev/prod environments.
+## Quick Start
 
-## Overview
+**Recommended: Use GitHub Actions (automatic)**
+- Push to `main` branch
+- Deployment runs automatically
+- App live at: **https://tumbahub-prod.web.app**
 
-- **Dev Environment**: Uses existing Firebase project (`tumbahub`)
-- **Production Environment**: New Firebase project (`tumbahub-prod`)
-- **Deployment**: GitHub Actions auto-deploys from `main` branch
-- **Hosting**: Firebase Hosting (free tier)
-
-## Pre-Deployment Checklist
-
-- [ ] GitHub account (if not already set up)
-- [ ] Two Firebase projects ready (dev already done, need prod)
-- [ ] Firebase CLI installed locally
-- [ ] GitHub Secrets configured
-- [ ] Production database seeded with initial data
+**Monitor:** https://github.com/Adiy2003/TumbaHub/actions
 
 ---
 
-## Step 1: Create Production Firebase Project
+## GitHub Actions Deployment (Recommended)
 
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Click **"Add project"**
-   - Name: `TumbaHub-Prod`
-   - Disable Google Analytics (optional)
-3. Once created, navigate to your new project
-4. Enable the following services:
-   - **Authentication** → Enable "Email/Password"
+The production app deploys automatically via GitHub Actions when you push to `main`.
+
+### Prerequisites:
+- ✅ Service account key in GitHub secrets (`PROD_FIREBASE_SERVICE_ACCOUNT_KEY`)
+- ✅ All production secrets configured in GitHub
+- ✅ IAM roles granted to service account
+- ✅ Web app linked to Hosting site in Firebase Console
+
+### Workflow:
+1. **Push to main** → GitHub Actions triggered
+2. **Build** → Next.js compilation
+3. **Deploy** → Firebase Hosting update
+4. **Live** → Available at https://tumbahub-prod.web.app
+
+### Monitor Deployment:
+```
+https://github.com/Adiy2003/TumbaHub/actions
+```
+
+---
+
+## Local Testing Deployment
+
+**Only for local testing/debugging** - use GitHub Actions for production.
+
+### Prerequisites:
+1. Firebase CLI: `npm install -g firebase-tools@12.9.1`
+2. Firebase login: `firebase login`
+
+### Deploy (Windows PowerShell):
+```powershell
+.\deploy-local.ps1
+```
+
+### Deploy (Mac/Linux):
+```bash
+bash deploy-local.sh
+```
+
+### Manual Deploy:
+```bash
+firebase experiments:enable webframeworks --project tumbahub-prod
+npm run build
+firebase deploy --project tumbahub-prod --only hosting
+```
+
+---
+
+## Environment Setup
    - **Firestore Database** → Create in production mode, region: us-central1
    - **Storage** → Create a bucket (default settings fine)
 

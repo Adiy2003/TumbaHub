@@ -7,6 +7,11 @@ import { AuthProvider } from '@/components/AuthProvider'
 export const metadata: Metadata = {
   title: 'TumbaHub - TumbaCoin Currency',
   description: 'Track and manage your TumbaCoins with friends',
+  manifest: '/manifest.json', // השורה שמוסיפה את המניפסט
+  icons: {
+    apple: '/icon-192x192.png', // חשוב מאוד לאייפונים!
+  },
+  themeColor: '#FFD700', // הצבע של הבר העליון בטלפון
 }
 
 export default function RootLayout({

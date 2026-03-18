@@ -1,45 +1,33 @@
-export const runtime = 'nodejs'
-
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/auth'
-import { validateEnvironmentVariables } from '@/lib/env-validation'
 
-// Validate environment variables on startup
-validateEnvironmentVariables()
-
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Skip middleware for auth routes
+  // 1. מאפשרים גישה חופשית לעמודי ההתחברות וההרשמה
   if (pathname.startsWith('/auth')) {
     return NextResponse.next()
   }
 
-  const session = await auth()
+  // 2. בדיקה קלילה ומהירה של העוגייה (Cookie) במקום לייבא ספריות שרת כבדות
+  const hasSession = request.cookies.has('next-auth.session-token') || 
+                     request.cookies.has('__Secure-next-auth.session-token')
 
-  // If user is not authenticated and tries to access protected routes, redirect to login
-  const protectedRoutes = ['/', '/leaderboard', '/profile', '/bets', '/album', '/transactions', '/shop', '/admin']
-  if (!session && protectedRoutes.some(route => pathname.startsWith(route))) {
+  // 3. הגדרת העמודים המוגנים (בלי הלוכסן הבעייתי)
+  const protectedPaths = ['/leaderboard', '/profile', '/bets', '/album', '/transactions', '/shop', '/admin']
+  
+  // בודקים אם הנתיב הוא עמוד הבית (/) או אחד מהעמודים המוגנים
+  const isProtectedRoute = pathname === '/' || protectedPaths.some(route => pathname.startsWith(route))
+
+  // 4. אם אין חיבור ומנסים לגשת לעמוד מוגן - מעבירים להתחברות
+  if (!hasSession && isProtectedRoute) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
-
-  // Note: Admin route protection should be checked in the route handler using the isAdmin field from database
-  // This middleware level check is for basic route protection only
-  // Detailed admin checks are done at the API endpoint level
 
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }
-

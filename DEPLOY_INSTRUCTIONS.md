@@ -17,7 +17,73 @@ Before starting, ensure you have:
 
 This is the critical step that was causing the "No Firebase app associated with site" warning.
 
-### Instructions:
+
+3. **Retry deployment:**
+   - Go to: https://github.com/Adiy2003/TumbaHub/actions
+   - Click on failed workflow
+   - Click **Re-run all jobs**
+
+### Everything Looks Good But App Not Live?
+
+1. **Check deployment history:**
+   - Go to Firebase: https://console.firebase.google.com/project/tumbahub-prod/hosting
+   - Click **Deployments** tab
+   - Look for successful deployment
+
+2. **Wait a bit longer:**
+   - DNS propagation can take 1-2 minutes
+   - Try refreshing the app page after 2 minutes
+
+3. **Check if it's actually live:**
+   - Visit: https://tumbahub-prod.web.app
+   - You should see the login page
+
+---
+
+## Next Steps (Optional)
+
+After successful deployment:
+
+1. **Monitor the app:**
+   - Check if users can login
+   - Browse through pages
+   - Test features
+
+2. **Set up monitoring:**
+   - Go to Firebase Console → **Hosting → Analytics** (if available)
+   - Monitor performance in **Performance** section
+
+3. **Set up alerts** (optional):
+   - Go to **Monitoring** in Firebase Console
+   - Create alerts for errors
+
+---
+
+## Quick Reference
+
+| What | Where |
+|------|-------|
+| **Deployed App** | https://tumbahub-prod.web.app |
+| **GitHub Actions** | https://github.com/Adiy2003/TumbaHub/actions |
+| **Firebase Console** | https://console.firebase.google.com/project/tumbahub-prod/hosting |
+| **Link Web App** | Firebase Console → Hosting → Settings → Linked apps |
+| **Logs** | GitHub Actions workflow run logs |
+
+---
+
+## Questions?
+
+- **Firebase Docs:** https://firebase.google.com/docs/hosting/frameworks/nextjs
+- **GitHub Actions Docs:** https://docs.github.com/en/actions
+- **Troubleshooting:** Check GitHub Actions logs for specific error messages
+
+---
+
+## Summary
+
+1. ✅ **Link Web app** (Firebase Console) - ONE TIME
+2. ✅ **Push to main** (GitHub) - Triggers deployment
+3. ✅ **Monitor** (GitHub Actions) - Watch build/deploy### Instructions:
 
 1. **Open Firebase Console**
    - Go to: https://console.firebase.google.com/
@@ -136,72 +202,6 @@ https://tumbahub-prod.web.app
    | "Permission denied" | Check IAM roles on service account |
    | "Build failed" | Check build logs, fix errors locally first |
 
-3. **Retry deployment:**
-   - Go to: https://github.com/Adiy2003/TumbaHub/actions
-   - Click on failed workflow
-   - Click **Re-run all jobs**
-
-### Everything Looks Good But App Not Live?
-
-1. **Check deployment history:**
-   - Go to Firebase: https://console.firebase.google.com/project/tumbahub-prod/hosting
-   - Click **Deployments** tab
-   - Look for successful deployment
-
-2. **Wait a bit longer:**
-   - DNS propagation can take 1-2 minutes
-   - Try refreshing the app page after 2 minutes
-
-3. **Check if it's actually live:**
-   - Visit: https://tumbahub-prod.web.app
-   - You should see the login page
-
----
-
-## Next Steps (Optional)
-
-After successful deployment:
-
-1. **Monitor the app:**
-   - Check if users can login
-   - Browse through pages
-   - Test features
-
-2. **Set up monitoring:**
-   - Go to Firebase Console → **Hosting → Analytics** (if available)
-   - Monitor performance in **Performance** section
-
-3. **Set up alerts** (optional):
-   - Go to **Monitoring** in Firebase Console
-   - Create alerts for errors
-
----
-
-## Quick Reference
-
-| What | Where |
-|------|-------|
-| **Deployed App** | https://tumbahub-prod.web.app |
-| **GitHub Actions** | https://github.com/Adiy2003/TumbaHub/actions |
-| **Firebase Console** | https://console.firebase.google.com/project/tumbahub-prod/hosting |
-| **Link Web App** | Firebase Console → Hosting → Settings → Linked apps |
-| **Logs** | GitHub Actions workflow run logs |
-
----
-
-## Questions?
-
-- **Firebase Docs:** https://firebase.google.com/docs/hosting/frameworks/nextjs
-- **GitHub Actions Docs:** https://docs.github.com/en/actions
-- **Troubleshooting:** Check GitHub Actions logs for specific error messages
-
----
-
-## Summary
-
-1. ✅ **Link Web app** (Firebase Console) - ONE TIME
-2. ✅ **Push to main** (GitHub) - Triggers deployment
-3. ✅ **Monitor** (GitHub Actions) - Watch build/deploy
 4. ✅ **Access app** (https://tumbahub-prod.web.app) - Go live!
 
 **That's it! 🎉**

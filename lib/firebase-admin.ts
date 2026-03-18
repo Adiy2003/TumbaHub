@@ -1,8 +1,8 @@
-/** 
- * Firebase Admin SDK initialization
- * This module requires Node.js runtime and cannot run on Edge runtime
- */
 import * as admin from 'firebase-admin';
+// מייבאים את הסוגים באופן מפורש
+import type { Auth } from 'firebase-admin/auth';
+import type { Firestore } from 'firebase-admin/firestore';
+import type { Storage } from 'firebase-admin/storage';
 
 let app: admin.app.App;
 
@@ -12,20 +12,21 @@ const serviceAccount = {
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };
 
-// פונקציה פנימית לאתחול
-function initializeAdmin() {
+function initializeAdmin(): admin.app.App {
   if (admin.apps.length > 0) {
     return admin.app();
   }
 
-  // בדיקת בטיחות - אם חסר מפתח, נדפיס לוג ברור
   if (!serviceAccount.privateKey || !serviceAccount.clientEmail) {
     console.error('[FIREBASE-ADMIN] ❌ MISSING CREDENTIALS!', {
       hasProjectId: !!serviceAccount.projectId,
       hasClientEmail: !!serviceAccount.clientEmail,
       hasPrivateKey: !!serviceAccount.privateKey,
     });
-    throw new Error('Firebase Admin credentials missing');
+    // בזמן Build אנחנו לא רוצים שהכל יקרוס אם אין מפתחות
+    return admin.initializeApp({
+      projectId: serviceAccount.projectId,
+    });
   }
 
   return admin.initializeApp({
@@ -34,14 +35,10 @@ function initializeAdmin() {
   });
 }
 
-try {
-  app = initializeAdmin();
-  console.log('[FIREBASE-ADMIN] ✅ Initialized successfully');
-} catch (error) {
-  console.error('[FIREBASE-ADMIN] ❌ Initialization failed:', error);
-}
+// מאתחלים
+app = initializeAdmin();
 
-// ייצוא המשתנים בצורה שתמיד תפעיל את האתחול אם הוא חסר
-export const adminAuth = admin.auth(app!);
-export const adminDb = admin.firestore(app!);
-export const adminStorage = admin.storage(app!);
+// ייצוא עם הגדרת סוג מפורשת (זה מה שפתר את השגיאה!)
+export const adminAuth: Auth = admin.auth(app);
+export const adminDb: Firestore = admin.firestore(app);
+export const adminStorage: Storage = admin.storage(app);

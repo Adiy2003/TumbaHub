@@ -2,11 +2,9 @@
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 
 function LoginContent() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const successMessage = searchParams.get('success')
 

@@ -62,8 +62,7 @@ function LoginContent() {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       // Redirect to home
-      router.push('/')
-      router.refresh()
+     window.location.href = '/'
     } catch (err) {
       console.error('Login error:', err)
       setError('An error occurred. Please try again.')

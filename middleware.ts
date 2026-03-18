@@ -8,9 +8,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 2. בדיקה קלילה ומהירה של העוגייה (Cookie) במקום לייבא ספריות שרת כבדות
-  const hasSession = request.cookies.has('next-auth.session-token') || 
-                     request.cookies.has('__Secure-next-auth.session-token')
+  // middleware.ts - עדכון זיהוי העוגיות
+const hasSession = 
+  request.cookies.has('authjs.session-token') || 
+  request.cookies.has('__Secure-authjs.session-token') ||
+  request.cookies.has('next-auth.session-token') || 
+  request.cookies.has('__Secure-next-auth.session-token');
 
   // 3. הגדרת העמודים המוגנים (בלי הלוכסן הבעייתי)
   const protectedPaths = ['/leaderboard', '/profile', '/bets', '/album', '/transactions', '/shop', '/admin']

@@ -62,70 +62,89 @@ export default function LeaderboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-dark-700 bg-dark-700">
-                <th className="px-6 py-4 text-left text-sm font-semibold text-dark-400">Rank</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-dark-400">Name</th>
-                <th className="px-6 py-4 text-right text-sm font-semibold text-dark-400">Balance</th>
-              </tr>
-            </thead>
+<main className="max-w-4xl mx-auto px-2 sm:px-6 lg:px-8 py-8 sm:py-12">
+  <div className="bg-dark-800 rounded-xl border border-dark-700 overflow-hidden">
+    {/* הוספנו table-fixed כדי למנוע מעמודת השם לדחוף את השאר החוצה */}
+    <table className="w-full table-fixed sm:table-auto">
+      <thead>
+        <tr className="border-b border-dark-700 bg-dark-700">
+          {/* עמודת דירוג: צרה יותר וריווח מותאם */}
+          <th className="w-12 sm:w-20 px-2 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-dark-400">
+            Rank
+          </th>
+          
+          {/* עמודת שם */}
+          <th className="px-2 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-dark-400">
+            Name
+          </th>
+          
+          {/* עמודת מאזן (TumbaCoins) */}
+          <th className="px-2 sm:px-6 py-3 sm:py-4 text-right text-xs sm:text-sm font-semibold text-dark-400">
+            Balance
+          </th>
+        </tr>
+      </thead>
             <tbody>
-              {users.map((user, index) => {
-                const isNegative = user.balance < 0
-                return (
-                  <tr
-                    key={user.id}
-                    className={`border-b border-dark-700 transition-colors hover:bg-dark-700 ${
-                      isNegative ? 'bg-red-900/20' : index === 0 ? 'bg-dark-700/50' : ''
-                    }`}
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <span className={`text-lg font-bold ${
-                          isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-dark-400'
-                        }`}>
-                          #{index + 1}
-                        </span>
-                        {index === 0 && (
-                          <span className="text-2xl">👑</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
-                          {user.profilePicture ? (
-                            <Image 
-                              src={user.profilePicture} 
-                              alt={user.name}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <span className="text-lg">👤</span>
-                          )}
-                        </div>
-                        <span className={`font-semibold ${
-                          isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-white'
-                        }`}>
-                          {user.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`font-bold text-lg ${
-                        isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-yellow-400'
-                      }`}>
-                        {user.balance.toLocaleString()}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
+  {users.map((user, index) => {
+    const isNegative = user.balance < 0
+    return (
+      <tr
+        key={user.id}
+        className={`border-b border-dark-700 transition-colors hover:bg-dark-700 ${
+          isNegative ? 'bg-red-900/20' : index === 0 ? 'bg-dark-700/50' : ''
+        }`}
+      >
+        {/* תא דירוג: הקטנת ריווח וגודל הכתר במובייל */}
+        <td className="px-2 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-1 sm:gap-3">
+            <span className={`text-base sm:text-lg font-bold ${
+              isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-dark-400'
+            }`}>
+              #{index + 1}
+            </span>
+            {index === 0 && (
+              <span className="text-lg sm:text-2xl">👑</span>
+            )}
+          </div>
+        </td>
+
+        {/* תא שם ותמונה: התאמת תמונה, ריווח, וטיפול בשמות ארוכים */}
+        <td className="px-2 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* הקטנו קצת את התמונה במובייל (w-8 h-8) */}
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+              {user.profilePicture ? (
+                <Image 
+                  src={user.profilePicture} 
+                  alt={user.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <span className="text-sm sm:text-lg">👤</span>
+              )}
+            </div>
+            {/* הוספנו truncate ו-max-w כדי ששם ארוך לא ישבור את הטבלה במובייל */}
+            <span className={`text-sm sm:text-base font-semibold truncate max-w-[90px] sm:max-w-none ${
+              isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-white'
+            }`}>
+              {user.name}
+            </span>
+          </div>
+        </td>
+
+        {/* תא מאזן: התאמת ריווח וגודל טקסט */}
+        <td className="px-2 sm:px-6 py-3 sm:py-4 text-right">
+          <span className={`font-bold text-sm sm:text-lg ${
+            isNegative ? 'text-red-400' : index === 0 ? 'text-coins' : 'text-yellow-400'
+          }`}>
+            {user.balance.toLocaleString()}
+          </span>
+        </td>
+      </tr>
+    )
+  })}
+</tbody>
           </table>
         </div>
 

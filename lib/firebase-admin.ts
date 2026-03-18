@@ -15,46 +15,31 @@ let _adminDb: Firestore | undefined
 let _adminStorage: Storage | undefined
 
 // Initialize Firebase - wrapped in try-catch so build doesn't fail if service account doesn't exist
+// Initialize Firebase
 try {
   console.log('[FIREBASE-ADMIN] Initializing Firebase Admin SDK...')
   
-  // Check if already initialized
   try {
     app = admin.app()
     console.log('[FIREBASE-ADMIN] ✓ Firebase app already initialized')
   } catch (e) {
-    let serviceAccount
-    
-    // Try env var first
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-      try {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
-        console.log('[FIREBASE-ADMIN] ✓ Service account from env var')
-      } catch (err) {
-        console.log('[FIREBASE-ADMIN] Env var not JSON')
-      }
-    }
-    
-    // Try file
-    if (!serviceAccount) {
-      const filePath = './firebase-service-account.json'
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf-8')
-        serviceAccount = JSON.parse(content)
-        console.log('[FIREBASE-ADMIN] ✓ Service account from file')
-      }
-    }
-    
-    if (serviceAccount) {
+    // הדרך הבטוחה: אתחול דרך משתנים נפרדים במקום JSON ענק
+    if (process.env.FIREBASE_PRIVATE_KEY) {
       app = admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-        storageBucket: serviceAccount.project_id + '.appspot.com',
+        credential: admin.credential.cert({
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // שורת הקסם שמתקנת את ירידות השורה ב-Vercel
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+        storageBucket: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`,
       })
+      console.log('[FIREBASE-ADMIN] ✓ Firebase initialized with separate env vars')
     } else {
-      console.warn('[FIREBASE-ADMIN] ⚠ Service account not found - Firebase may not be initialized (ok during build)')
+      console.warn('[FIREBASE-ADMIN] ⚠ Service account details missing - Firebase not initialized')
     }
   }
+  
   
   if (app) {
     _adminAuth = admin.auth(app)

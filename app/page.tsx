@@ -8,12 +8,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import BalanceCard from '@/components/BalanceCard'
 
+// עדכנו את הממשק כדי שיכיל את התאריכים החדשים
 interface User {
   id: string
   name: string
   email: string
   balance: number
   profilePicture?: string
+  lastDriveDate?: string | null
+  lastHostDate?: string | null
 }
 
 interface Activity {
@@ -50,8 +53,42 @@ export default function Home() {
       const activitiesData = await activitiesRes.json()
       const usersData = await usersRes.json()
 
-      if (meData.user) {
-        setCurrentUser(meData.user)
+      // --- הלוגיקה החדשה ששולפת את התאריכים! ---
+      let enrichedUser = meData.user
+
+      if (enrichedUser && activitiesData.transactions) {
+        // מסננים רק עסקאות שבהן המשתמש קיבל כסף
+        const incomingTxs = activitiesData.transactions.filter(
+          (tx: Activity) => tx.to.email === enrichedUser.email
+        )
+
+        // מוודאים שהעסקאות ממוינות מהחדש לישן
+        const sortedTxs = incomingTxs.sort((a: Activity, b: Activity) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+
+        // מחפשים את הנהיגה האחרונה
+        const lastDriveTx = sortedTxs.find((tx: Activity) => 
+          tx.action.toLowerCase().includes('short ride') || 
+          tx.action.toLowerCase().includes('long ride')
+        )
+
+        // מחפשים את האירוח האחרון
+        const lastHostTx = sortedTxs.find((tx: Activity) => 
+          tx.action.toLowerCase().includes('regular host') || 
+          tx.action.toLowerCase().includes('special host')
+        )
+
+        // מעשירים את המשתמש עם התאריכים המפורמטים (DD/MM/YYYY)
+        enrichedUser = {
+          ...enrichedUser,
+          lastDriveDate: lastDriveTx ? new Date(lastDriveTx.createdAt).toLocaleDateString('en-GB') : null,
+          lastHostDate: lastHostTx ? new Date(lastHostTx.createdAt).toLocaleDateString('en-GB') : null,
+        }
+      }
+
+      if (enrichedUser) {
+        setCurrentUser(enrichedUser)
       }
 
       if (activitiesData.transactions) {
@@ -59,7 +96,6 @@ export default function Home() {
       }
 
       if (usersData.users && usersData.users.length > 0) {
-        // Find the user with the lowest balance
         const lowest = usersData.users.reduce((prev: User, current: User) => 
           current.balance < prev.balance ? current : prev
         )
@@ -175,7 +211,7 @@ export default function Home() {
                           {isIncoming ? '+' : '-'}{activity.amount}
                         </p>
                         <p className="text-dark-400 text-xs mt-1">
-                          {new Date(activity.createdAt).toLocaleDateString()}
+                          {new Date(activity.createdAt).toLocaleDateString('en-GB')}
                         </p>
                       </div>
                     </div>

@@ -89,10 +89,15 @@ export async function PUT(request: Request) {
         }
 
         // Upload to Firebase Storage
-        const bucketName = process.env.FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID || 'tumbahub-7ce7c'}.appspot.com`
-        const bucket = adminStorage.bucket(bucketName)
-        const fileName = `profile-pictures/${session.user.id}-${Date.now()}`
-        const file_ref = bucket.file(fileName)
+      const bucketName = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
+
+      if (!bucketName) {
+        throw new Error("Storage bucket name is missing!");
+     }
+
+      const bucket = adminStorage.bucket(bucketName);
+      const fileName = `profile-pictures/${session.user.id}-${Date.now()}`;
+      const file_ref = bucket.file(fileName);
 
         const buffer = await file.arrayBuffer()
         

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image' // למקרה שנרצה תמונות לחפצים
+import { Backpack } from 'lucide-react'
 
 // המבנה של חפץ במלאי שלנו
 interface InventoryItem {
@@ -85,18 +86,20 @@ export default function InventoryCenter() {
   return (
     <>
       <button
-        ref={backpackRef}
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-dark-400 hover:text-coins transition-colors"
-        title="My Items"
-      >
-        <span className="text-2xl">🎒</span>
-        {items.length > 0 && (
-          <span className="absolute top-0 right-0 bg-coins text-dark-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {items.length}
-          </span>
-        )}
-      </button>
+  ref={backpackRef}
+  onClick={() => setIsOpen(!isOpen)}
+  className="relative p-2 text-dark-400 hover:text-coins transition-colors"
+  title="My Items"
+>
+  <Backpack className="w-6 h-6" strokeWidth={1.5} />
+  
+  {/* הבועה של המספר נשארת אותו דבר: */}
+  {items.length > 0 && (
+    <span className="absolute top-0 right-0 bg-coins text-dark-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center translate-x-1 -translate-y-1">
+      {items.length}
+    </span>
+  )}
+</button>
 
       {mounted &&
         isOpen &&

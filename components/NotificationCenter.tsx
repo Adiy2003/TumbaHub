@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
+import { Bell } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -140,19 +141,24 @@ export default function NotificationCenter() {
 
   return (
     <>
-      <button
-        ref={bellRef}
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-dark-400 hover:text-coins transition-colors"
-        title="Notifications"
-      >
-        <span className="text-2xl">🔔</span>
-        {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
+      // למעלה:
+import { Bell } from 'lucide-react'
+
+// ... ובכפתור:
+<button
+  ref={bellRef}
+  onClick={() => setIsOpen(!isOpen)}
+  className="relative p-2 text-dark-400 hover:text-coins transition-colors"
+  title="Notifications"
+>
+  <Bell className="w-6 h-6" strokeWidth={1.5} />
+  
+  {unreadCount > 0 && (
+    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center translate-x-1 -translate-y-1">
+      {unreadCount}
+    </span>
+  )}
+</button>
 
       {mounted &&
         isOpen &&

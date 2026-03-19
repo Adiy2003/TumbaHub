@@ -216,6 +216,8 @@ function NotificationDropdown({
         return '🛍️'
       case 'item_used':
          return '🪄'
+      case 'wheel_spin': 
+        return '🎡'   
       case 'admin_bonus':
         return '🎁'
       case 'transfer':

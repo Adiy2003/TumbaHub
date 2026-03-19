@@ -1,7 +1,7 @@
 import { adminDb } from './firebase-admin'
 import { Timestamp } from 'firebase-admin/firestore'
 
-export type NotificationType = 'shop_purchase' | 'admin_bonus' | 'transfer' | 'bet_created' | 'bet_won' | 'bet_lost'
+export type NotificationType = 'shop_purchase' | 'admin_bonus' | 'transfer' | 'bet_created' | 'bet_won' | 'bet_lost' | 'wheel_spin'
 
 export interface Notification {
   id: string

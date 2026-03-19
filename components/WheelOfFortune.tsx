@@ -33,27 +33,45 @@ export default function WheelOfFortune() {
     return gradient
   }
 
-  const spinWheel = () => {
+  const spinWheel = async () => {
     if (isSpinning) return
 
     setIsSpinning(true)
     setResult(null)
 
-    const winningIndex = Math.floor(Math.random() * PRIZES.length)
-    const sliceAngle = 360 / PRIZES.length
-    const baseSpins = 360 * 5 
-    
-    // החישוב המדויק לעצירה באמצע המשולש
-    const targetRotation = baseSpins + (360 - (winningIndex * sliceAngle)) - (sliceAngle / 2)
+    try {
+      // מבקשים מהשרת להגריל תוצאה ולעדכן את הדאטה-בייס
+      const response = await fetch('/api/wheel/spin', { method: 'POST' })
+      const data = await response.json()
 
-    setRotation((prev) => prev + targetRotation)
+      if (!response.ok) {
+        // אם למשל המשתמש כבר סובב היום, נקפיץ לו שגיאה
+        setResult(data.error || 'Something went wrong')
+        setIsSpinning(false)
+        return
+      }
 
-    setTimeout(() => {
+      const winningIndex = data.prizeIndex
+      const sliceAngle = 360 / PRIZES.length
+      const baseSpins = 360 * 5 
+      
+      // מחשבים את העצירה לפי האינדקס שהשרת החזיר לנו!
+      const targetRotation = baseSpins + (360 - (winningIndex * sliceAngle)) - (sliceAngle / 2)
+
+      setRotation((prev) => prev + targetRotation)
+
+      // אחרי 5 שניות האנימציה מסתיימת, מציגים את התוצאה
+      setTimeout(() => {
+        setIsSpinning(false)
+        setResult(data.prize.label)
+      }, 5000)
+
+    } catch (error) {
+      console.error('Spin error:', error)
+      setResult('Connection error. Try again.')
       setIsSpinning(false)
-      setResult(PRIZES[winningIndex].label)
-    }, 5000)
+    }
   }
-
   return (
     <div className="flex flex-col items-center justify-center p-6 bg-dark-800 rounded-xl border border-dark-600 shadow-xl max-w-md mx-auto w-full">
       <h2 className="text-2xl font-bold text-white mb-8">Daily Spin</h2>

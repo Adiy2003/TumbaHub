@@ -141,10 +141,7 @@ export default function NotificationCenter() {
 
   return (
     <>
-      // למעלה:
-import { Bell } from 'lucide-react'
-
-// ... ובכפתור:
+     
 <button
   ref={bellRef}
   onClick={() => setIsOpen(!isOpen)}

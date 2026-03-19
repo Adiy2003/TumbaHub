@@ -67,7 +67,7 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
             <Car className="text-dark-400 mb-1.5" size={20} strokeWidth={1.5} />
             <span className="text-[10px] text-dark-500 uppercase font-semibold mb-1 tracking-wider">Last Drive</span>
             <span className="text-xs font-bold text-white">
-              {user.lastDriveDate ? user.lastDriveDate : 'Never 🚗'}
+              {user.lastDriveDate ? user.lastDriveDate : 'Never'}
             </span>
           </div>
 
@@ -75,7 +75,7 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
             <Home className="text-dark-400 mb-1.5" size={20} strokeWidth={1.5} />
             <span className="text-[10px] text-dark-500 uppercase font-semibold mb-1 tracking-wider">Last Host</span>
             <span className="text-xs font-bold text-white">
-              {user.lastHostDate ? user.lastHostDate : 'Never 🏠'}
+              {user.lastHostDate ? user.lastHostDate : 'Never'}
             </span>
           </div>
         </div>

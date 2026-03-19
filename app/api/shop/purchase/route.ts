@@ -45,6 +45,13 @@ export async function POST(request: Request) {
     const batch = adminDb.batch()
     const now = new Date()
     const transactionRef = adminDb.collection('transactions').doc()
+    
+    // --- 1. יצירת רפרנס למסמך החדש בתוך התיק של המשתמש ---
+    const inventoryRef = adminDb
+      .collection('users')
+      .doc(session.user.id)
+      .collection('inventory')
+      .doc()
 
     // Deduct from user balance
     batch.update(adminDb.collection('users').doc(session.user.id), {
@@ -62,6 +69,16 @@ export async function POST(request: Request) {
       createdAt: now,
     })
 
+    // --- 2. שמירת נתוני החפץ בתוך התיק! ---
+    batch.set(inventoryRef, {
+      name: item.name,
+      description: item.description || '',
+      type: item.type || 'mystery', // ברירת מחדל למקרה שאין סוג מוגדר בחנות
+      imageUrl: item.imageUrl || null,
+      acquiredAt: now.toISOString(),
+    })
+
+    // מבצעים את כל ה-3 פעולות במכה אחת!
     await batch.commit()
 
     // Notify all users

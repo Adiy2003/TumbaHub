@@ -31,7 +31,7 @@ function initializeAdmin(): admin.app.App {
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    storageBucket: "tumbahub-prod.firebasestorage.app",
   });
 }
 

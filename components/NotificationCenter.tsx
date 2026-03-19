@@ -188,9 +188,19 @@ function NotificationDropdown({
   onClose,
   bellRef,
 }: NotificationDropdownProps) {
+  
+  // 1. נוסיף Ref חדש שמצביע על חלון ההתראות עצמו
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+      // 2. נעדכן את התנאי: תסגור רק אם הלחיצה היא מחוץ לפעמון *וגם* מחוץ לתפריט ההתראות
+      if (
+        bellRef.current && 
+        !bellRef.current.contains(e.target as Node) &&
+        dropdownRef.current && 
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         onClose()
       }
     }
@@ -236,11 +246,16 @@ function NotificationDropdown({
 
   return (
     <>
-      <div className="fixed inset-0 z-40 pointer-events-none" onClick={onClose} />
+      {/* בונוס קטן: הורדתי מפה את ה pointer-events-none. 
+          עכשיו אם לוחצים על הרקע השקוף מסביב, זה באמת יסגור את החלון כמו שצריך */}
+      <div className="fixed inset-0 z-40" onClick={onClose} />
+      
       <div
+        ref={dropdownRef} // 3. מחברים את ה-Ref שיצרנו ל-div של התפריט
         onClick={(e) => e.stopPropagation()}
         className="fixed top-12 right-4 w-80 bg-dark-800 border border-dark-600 rounded-lg shadow-2xl z-50 max-h-96 overflow-y-auto"
       >
+        {/* ... שאר התוכן של התפריט נשאר בול אותו דבר ... */}
         <div className="sticky top-0 bg-dark-800 border-b border-dark-600 p-4 flex items-center justify-between">
           <h3 className="text-white font-semibold">Notifications</h3>
           {unreadCount > 0 && (

@@ -214,6 +214,8 @@ function NotificationDropdown({
     switch (type) {
       case 'shop_purchase':
         return '🛍️'
+      case 'item_used':
+         return '🪄'
       case 'admin_bonus':
         return '🎁'
       case 'transfer':

@@ -91,11 +91,12 @@ export async function POST() {
     await batch.commit()
 
     // מודיעים לכולם אם זו זכייה משמעותית (מעל 10 מטבעות או חפץ מיוחד)
-    if (prize.type === 'item' || prize.type === 'special' || (prize.type === 'coins' && (prize.value as number) > 10)) {
+   if (prize.type === 'item' || prize.type === 'special' || (prize.type === 'coins' && (prize.value as number) > 10)) {
       await notifyAllUsers({
         type: 'wheel_spin',
         title: 'Big Win! 🎡',
         message: notificationMessage,
+        excludeUserId: session.user.id, // <--- הנה השורה שהייתה חסרה!
         relatedUserId: session.user.id,
         relatedUserName: userData.name,
       }).catch(console.error) // לא מכשיל את הסיבוב אם ההתראה נכשלה

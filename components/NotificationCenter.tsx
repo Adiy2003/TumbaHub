@@ -38,7 +38,8 @@ export default function NotificationCenter() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await fetch('/api/notifications')
+      // הוספנו את cache: 'no-store' - קריטי ב-Next.js!
+      const res = await fetch('/api/notifications', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setNotifications(data.notifications || [])
@@ -49,6 +50,11 @@ export default function NotificationCenter() {
   }
 
   const handleMarkAsRead = async (notificationId: string) => {
+    // קסם מס' 1: מעדכנים את המסך מיד! (Optimistic Update)
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+    )
+
     try {
       const res = await fetch('/api/notifications/mark-read', {
         method: 'POST',
@@ -58,20 +64,29 @@ export default function NotificationCenter() {
 
       if (!res.ok) {
         console.error('Failed to mark as read:', res.statusText)
+        // אם משהו השתבש בשרת, נמשוך מחדש את המידע האמיתי
+        fetchNotifications()
         return
       }
-
-      fetchNotifications()
+      // אין צורך לקרוא ל-fetchNotifications פה כי המסך כבר מעודכן
     } catch (error) {
       console.error('Failed to mark as read:', error)
+      fetchNotifications()
     }
   }
 
   const handleMarkAllAsRead = async () => {
-    try {
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    // 1. עדכון אופטימי - הופכים את הכל לנקרא באופן מיידי על המסך
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
 
+    try {
+      // מוצאים רק את אלה שעדיין לא נקראו כדי לא להעמיס על השרת
       const unreadNotifications = notifications.filter((n) => !n.read)
+      
+      // אם אין התראות חדשות, עוצרים כאן חבל על הבקשות
+      if (unreadNotifications.length === 0) return
+
+      // 2. שולחים את כל הבקשות לשרת במקביל
       const results = await Promise.all(
         unreadNotifications.map((notif) =>
           fetch('/api/notifications/mark-read', {
@@ -85,18 +100,22 @@ export default function NotificationCenter() {
       const failedCount = results.filter((r) => !r.ok).length
       if (failedCount > 0) {
         console.warn(`Failed to mark ${failedCount} notifications as read`)
+        // רק אם משהו נכשל בשרת, נמשוך מחדש כדי לסנכרן את התצוגה
         fetchNotifications()
-        return
       }
-
-      fetchNotifications()
+      
+      // פה היה ה-fetchNotifications() שעשה בעיות - העפנו אותו!
+      
     } catch (error) {
       console.error('Failed to mark all as read:', error)
-      fetchNotifications()
+      fetchNotifications() // משיכה מחדש במקרה של קריסה
     }
   }
 
   const handleDelete = async (notificationId: string) => {
+    // מעלימים את ההתראה מיד מהמסך
+    setNotifications((prev) => prev.filter((n) => n.id !== notificationId))
+
     try {
       const res = await fetch('/api/notifications/delete', {
         method: 'DELETE',
@@ -106,12 +125,12 @@ export default function NotificationCenter() {
 
       if (!res.ok) {
         console.error('Failed to delete notification:', res.statusText)
+        fetchNotifications() // מתקנים את התצוגה אם נכשל
         return
       }
-
-      fetchNotifications()
     } catch (error) {
       console.error('Failed to delete notification:', error)
+      fetchNotifications()
     }
   }
 

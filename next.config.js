@@ -36,6 +36,20 @@ const nextConfig = {
     return config
   },
   output: 'standalone',
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com', // לכתובות שמגיעות מה-Admin SDK
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com', // לכתובות שמגיעות מה-Client SDK
+      }
+    ]
+  }
+
 }
 
 module.exports = nextConfig

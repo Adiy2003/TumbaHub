@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { signIn } from 'next-auth/react' // ← הוספנו את זה!
 
 export default function SignupPage() {
   const router = useRouter()
@@ -26,6 +27,13 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
+    // בדיקת התאמת סיסמאות קטנה שהוספתי בשביל חווית המשתמש
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -39,16 +47,34 @@ export default function SignupPage() {
 
       if (!res.ok) {
         setError(data.error || 'Failed to create account')
+        setLoading(false) // חזרנו למצב רגיל כי הייתה שגיאה
         return
       }
 
-      // Redirect to login after successful signup
-      router.push('/login?success=Account created successfully')
+      // --- כאן נמצא הקסם החדש! ---
+      // במקום לעבור ללוגין, אנחנו עושים לוגין אוטומטי מאחורי הקלעים
+      const signInResult = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false, // מונע מ-NextAuth להשתלט על הניווט
+      })
+
+      if (signInResult?.ok) {
+        // התחברות אוטומטית הצליחה! טסים לעמוד הבית עם ריענון חזק
+        window.location.href = '/'
+      } else {
+        // למקרה הנדיר שההרשמה הצליחה אבל ההתחברות האוטומטית נכשלה
+        setError('Account created, but automatic login failed. Please log in.')
+        setLoading(false)
+        router.push('/auth/login')
+      }
+      
     } catch (err) {
       setError('An error occurred. Please try again.')
-    } finally {
       setLoading(false)
-    }
+    } 
+    // הסרתי את ה-finally block כי אם ההתחברות מצליחה, 
+    // אנחנו רוצים שהכפתור יישאר במצב "Creating account..." עד שהעמוד יתרענן לחלוטין.
   }
 
   return (
@@ -136,7 +162,7 @@ export default function SignupPage() {
               disabled={loading}
               className="w-full bg-coins text-dark-900 font-semibold py-2 rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating account & Logging in...' : 'Create Account'}
             </button>
           </form>
 

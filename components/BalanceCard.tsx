@@ -10,6 +10,8 @@ interface User {
   profilePicture?: string
   lastDriveDate?: string | null
   lastHostDate?: string | null
+  driveCount?: number // סך הכל נהיגות
+  hostCount?: number  // סך הכל אירוחים
 }
 
 interface BalanceCardProps {
@@ -61,9 +63,15 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
           <p className="text-dark-400 text-xs mt-2 mb-6">TumbaCoins</p>
         </div>
 
-        {/* הסטטיסטיקות החדשות - נדחפות לתחתית הכרטיסייה */}
+        {/* הסטטיסטיקות החדשות - עם תגיות כמות! */}
         <div className="grid grid-cols-2 gap-3 mt-auto pt-4 border-t border-dark-700/50">
-          <div className="bg-dark-900/40 rounded-lg p-3 flex flex-col items-center justify-center border border-dark-700/50 hover:border-dark-600 transition-colors">
+          <div className="relative bg-dark-900/40 rounded-lg p-3 flex flex-col items-center justify-center border border-dark-700/50 hover:border-dark-600 transition-colors">
+            {/* תגית כמות נסיעות */}
+            {(user.driveCount || 0) > 0 && (
+              <div className="absolute top-2 right-2 bg-dark-800 border border-dark-600 text-coins text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                {user.driveCount}
+              </div>
+            )}
             <Car className="text-dark-400 mb-1.5" size={20} strokeWidth={1.5} />
             <span className="text-[10px] text-dark-500 uppercase font-semibold mb-1 tracking-wider">Last Drive</span>
             <span className="text-xs font-bold text-white">
@@ -71,7 +79,13 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
             </span>
           </div>
 
-          <div className="bg-dark-900/40 rounded-lg p-3 flex flex-col items-center justify-center border border-dark-700/50 hover:border-dark-600 transition-colors">
+          <div className="relative bg-dark-900/40 rounded-lg p-3 flex flex-col items-center justify-center border border-dark-700/50 hover:border-dark-600 transition-colors">
+            {/* תגית כמות אירוחים */}
+            {(user.hostCount || 0) > 0 && (
+              <div className="absolute top-2 right-2 bg-dark-800 border border-dark-600 text-coins text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm">
+                {user.hostCount}
+              </div>
+            )}
             <Home className="text-dark-400 mb-1.5" size={20} strokeWidth={1.5} />
             <span className="text-[10px] text-dark-500 uppercase font-semibold mb-1 tracking-wider">Last Host</span>
             <span className="text-xs font-bold text-white">

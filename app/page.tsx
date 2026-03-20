@@ -10,7 +10,7 @@ import BalanceCard from '@/components/BalanceCard'
 import CalendarWidget from '@/components/CalendarWidget'
 import { User, Car, Frown, History, ArrowDownLeft, ArrowUpRight, CalendarDays } from 'lucide-react'
 
-// עדכנו את הממשק כדי שיכיל את התאריכים החדשים
+// עדכנו את הממשק כדי שיכיל את התאריכים החדשים ואת הספירות!
 interface User {
   id: string
   name: string
@@ -19,15 +19,21 @@ interface User {
   profilePicture?: string
   lastDriveDate?: string | null
   lastHostDate?: string | null
+  driveCount?: number 
+  hostCount?: number  
 }
 
+// עדכנו את הפעילות שתתמוך בפורמטים החדשים והישנים
 interface Activity {
   id: string
   action: string
   amount: number
-  from: { name: string; email: string }
-  to: { name: string; email: string }
-  createdAt: string
+  fromId?: string
+  toId?: string
+  toEmail?: string
+  from?: { id?: string; name?: string; email?: string }
+  to?: { id?: string; name?: string; email?: string }
+  createdAt: any // תומך גם ב-Date וגם באובייקט של פיירבייס
 }
 
 export default function Home() {
@@ -55,37 +61,49 @@ export default function Home() {
       const activitiesData = await activitiesRes.json()
       const usersData = await usersRes.json()
 
-      // --- הלוגיקה החדשה ששולפת את התאריכים! ---
+      // --- הלוגיקה חסינת הכדורים החדשה ששולפת את התאריכים והספירות! ---
       let enrichedUser = meData.user
 
       if (enrichedUser && activitiesData.transactions) {
-        // מסננים רק עסקאות שבהן המשתמש קיבל כסף
-        const incomingTxs = activitiesData.transactions.filter(
-          (tx: Activity) => tx.to.email === enrichedUser.email
-        )
+        // מסננים רק עסקאות שבהן המשתמש קיבל כסף (בצורה בטוחה)
+        const incomingTxs = activitiesData.transactions.filter((tx: Activity) => {
+          const matchId = tx.toId === enrichedUser.id || (tx.to && tx.to.id === enrichedUser.id)
+          const matchEmail = tx.toEmail === enrichedUser.email || (tx.to && tx.to.email === enrichedUser.email)
+          return matchId || matchEmail
+        })
 
-        // מוודאים שהעסקאות ממוינות מהחדש לישן
-        const sortedTxs = incomingTxs.sort((a: Activity, b: Activity) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
+        // מוודאים שהעסקאות ממוינות מהחדש לישן (התמודדות עם זמני פיירבייס)
+        const sortedTxs = incomingTxs.sort((a: Activity, b: Activity) => {
+          const timeA = a.createdAt?._seconds ? a.createdAt._seconds * 1000 : new Date(a.createdAt || 0).getTime()
+          const timeB = b.createdAt?._seconds ? b.createdAt._seconds * 1000 : new Date(b.createdAt || 0).getTime()
+          return timeB - timeA
+        })
 
-        // מחפשים את הנהיגה האחרונה
-        const lastDriveTx = sortedTxs.find((tx: Activity) => 
-          tx.action.toLowerCase().includes('short ride') || 
-          tx.action.toLowerCase().includes('long ride')
-        )
+        // מסננים כדי למצוא את כל עסקאות הנהיגה (לצורך ספירה)
+        const driveTxs = sortedTxs.filter((tx: Activity) => {
+          const action = (tx.action || '').toLowerCase()
+          return action.includes('short ride') || action.includes('long ride') || action.includes('drive') || action.includes('taxi')
+        })
 
-        // מחפשים את האירוח האחרון
-        const lastHostTx = sortedTxs.find((tx: Activity) => 
-          tx.action.toLowerCase().includes('regular host') || 
-          tx.action.toLowerCase().includes('special host')
-        )
+        // מסננים כדי למצוא את כל עסקאות האירוח (לצורך ספירה)
+        const hostTxs = sortedTxs.filter((tx: Activity) => {
+          const action = (tx.action || '').toLowerCase()
+          return action.includes('regular host') || action.includes('special host') || action.includes('host')
+        })
 
-        // מעשירים את המשתמש עם התאריכים המפורמטים (DD/MM/YYYY)
+        // פונקציית עזר להמרת תאריך
+        const formatDate = (tx: Activity) => {
+          const time = tx.createdAt?._seconds ? tx.createdAt._seconds * 1000 : new Date(tx.createdAt || 0).getTime()
+          return new Date(time).toLocaleDateString('en-GB')
+        }
+
+        // מעשירים את המשתמש עם התאריכים והספירות
         enrichedUser = {
           ...enrichedUser,
-          lastDriveDate: lastDriveTx ? new Date(lastDriveTx.createdAt).toLocaleDateString('en-GB') : null,
-          lastHostDate: lastHostTx ? new Date(lastHostTx.createdAt).toLocaleDateString('en-GB') : null,
+          lastDriveDate: driveTxs.length > 0 ? formatDate(driveTxs[0]) : null,
+          lastHostDate: hostTxs.length > 0 ? formatDate(hostTxs[0]) : null,
+          driveCount: driveTxs.length,
+          hostCount: hostTxs.length,
         }
       }
 
@@ -93,6 +111,7 @@ export default function Home() {
         setCurrentUser(enrichedUser)
       }
 
+      // שמירת כלל העסקאות לתצוגה של הרשימה למטה
       if (activitiesData.transactions) {
         setActivities(activitiesData.transactions)
       }
@@ -109,6 +128,12 @@ export default function Home() {
       console.error('Failed to fetch data:', error)
       setLoading(false)
     }
+  }
+
+  // פונקציית עזר להמרת תאריכים מחוץ ל-fetchData (בשביל הרשימה למטה)
+  const formatActivityDate = (createdAt: any) => {
+    const time = createdAt?._seconds ? createdAt._seconds * 1000 : new Date(createdAt || 0).getTime()
+    return new Date(time).toLocaleDateString('en-GB')
   }
 
   if (loading) {
@@ -142,11 +167,9 @@ export default function Home() {
         {/* Current User Balance */}
         {currentUser && (
           <section className="mb-16">
-            {/* הוספנו פה div שעוטף את הכותרת ואת הכפתור ומצמיד אותם לצדדים */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
               
-              {/* העברנו את הכפתור לפה! */}
               <Link
                 href="/transactions"
                 className="text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
@@ -158,6 +181,7 @@ export default function Home() {
             <BalanceCard user={currentUser} isCurrentUser={true} />
           </section>
         )}
+
         {/* This Weekend's Taxi Driver */}
         {taxiDriver && (
           <section className="mb-8">
@@ -201,7 +225,6 @@ export default function Home() {
           <CalendarWidget />
         </section>
 
-
         {/* Recent Activity */}
         <section>
           <div className="mb-6 flex items-center gap-2">
@@ -217,8 +240,13 @@ export default function Home() {
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {activities.map((activity) => {
-                  const isIncoming = activity.to.email === currentUser?.email
-                  const otherUser = isIncoming ? activity.from : activity.to
+                  // זיהוי בטוח אם הפעולה היא נכנסת או יוצאת
+                  const isIncoming = activity.toId === currentUser?.id || activity.toEmail === currentUser?.email || (activity.to && activity.to.email === currentUser?.email)
+                  
+                  // אם השדות החדשים קיימים نשתמש בהם, אחרת ניפול חזרה למבנה הישן
+                  const otherUserName = isIncoming 
+                    ? (activity.from?.name || 'Someone') 
+                    : (activity.to?.name || 'Someone')
 
                   return (
                     <div key={activity.id} className="flex items-center justify-between p-4 bg-dark-700/50 rounded-lg hover:bg-dark-700 transition-colors border border-dark-700/50">
@@ -232,7 +260,7 @@ export default function Home() {
                           ) : (
                             <><ArrowUpRight size={16} className="text-red-400" /> To</>
                           )} 
-                          <span className="text-white font-medium ml-1">{otherUser.name}</span>
+                          <span className="text-white font-medium ml-1">{otherUserName}</span>
                         </p>
                       </div>
                       <div className="text-right">
@@ -240,7 +268,7 @@ export default function Home() {
                           {isIncoming ? '+' : '-'}{activity.amount}
                         </p>
                         <p className="text-dark-400 text-xs mt-1 font-medium">
-                          {new Date(activity.createdAt).toLocaleDateString('en-GB')}
+                          {formatActivityDate(activity.createdAt)}
                         </p>
                       </div>
                     </div>
@@ -250,10 +278,6 @@ export default function Home() {
             )}
           </div>
         </section>
-
-        
-
-        
       </main>
     </div>
   )

@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-// מייבאים את הסוגים באופן מפורש
 import type { Auth } from 'firebase-admin/auth';
 import type { Firestore } from 'firebase-admin/firestore';
 import type { Storage } from 'firebase-admin/storage';
@@ -31,14 +30,14 @@ function initializeAdmin(): admin.app.App {
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-    storageBucket: "tumbahub-prod.firebasestorage.app",
+    // שינוי קריטי: המזהה של האחסון עכשיו נמשך לפי הסביבה (Dev או Prod)
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   });
 }
 
 // מאתחלים
 app = initializeAdmin();
 
-// ייצוא עם הגדרת סוג מפורשת (זה מה שפתר את השגיאה!)
 export const adminAuth: Auth = admin.auth(app);
 export const adminDb: Firestore = admin.firestore(app);
 export const adminStorage: Storage = admin.storage(app);

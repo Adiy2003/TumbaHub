@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import BalanceCard from '@/components/BalanceCard'
+import CalendarWidget from '@/components/CalendarWidget'
+import { User, Car, Frown, History, ArrowDownLeft, ArrowUpRight, CalendarDays } from 'lucide-react'
 
 // עדכנו את הממשק כדי שיכיל את התאריכים החדשים
 interface User {
@@ -140,15 +142,26 @@ export default function Home() {
         {/* Current User Balance */}
         {currentUser && (
           <section className="mb-16">
-            <h2 className="text-xl font-semibold text-dark-400 mb-6">Your Balance</h2>
+            {/* הוספנו פה div שעוטף את הכותרת ואת הכפתור ומצמיד אותם לצדדים */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
+              
+              {/* העברנו את הכפתור לפה! */}
+              <Link
+                href="/transactions"
+                className="text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
+              >
+                Make a Transaction
+              </Link>
+            </div>
+            
             <BalanceCard user={currentUser} isCurrentUser={true} />
           </section>
         )}
-
         {/* This Weekend's Taxi Driver */}
         {taxiDriver && (
           <section className="mb-8">
-            <div className="bg-gradient-to-br from-dark-800 to-dark-700 rounded-xl border border-coins/30 p-4">
+            <div className="bg-gradient-to-br from-dark-800 to-dark-700 rounded-xl border border-coins/30 p-4 shadow-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-coins to-yellow-400 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 relative">
@@ -160,57 +173,73 @@ export default function Home() {
                         className="object-cover"
                       />
                     ) : (
-                      <span className="text-xl">👤</span>
+                      <User className="text-dark-900" size={24} />
                     )}
                   </div>
                   <div>
-                    <p className="text-coins text-sm font-medium">🚕 This weekend&apos;s taxi driver</p>
+                    <p className="text-coins text-sm font-medium flex items-center gap-1.5">
+                      <Car size={16} strokeWidth={2} /> 
+                      This weekend&apos;s taxi driver
+                    </p>
                     <p className="text-xl font-bold text-white">{taxiDriver.name}</p>
                   </div>
                 </div>
-                <div className="text-3xl">🤦</div>
+                <div className="text-dark-500 pr-2">
+                  <Frown size={32} strokeWidth={1.5} className="opacity-50" />
+                </div>
               </div>
             </div>
           </section>
         )}
 
+       {/* Upcoming Events */}
+        <section className="mb-16">
+          <div className="flex items-center gap-2 mb-6">
+            <CalendarDays className="text-coins" size={24} strokeWidth={1.5} />
+            <h2 className="text-xl font-semibold text-dark-400">Tumba Calendar</h2>
+          </div>
+          <CalendarWidget />
+        </section>
+
+
         {/* Recent Activity */}
         <section>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-dark-400">📋 Recent Activity</h2>
-            <Link
-              href="/transactions"
-              className="text-sm px-3 py-1 bg-coins text-dark-900 font-medium rounded-lg hover:bg-yellow-300 transition-colors"
-            >
-              Make a Transaction
-            </Link>
+          <div className="mb-6 flex items-center gap-2">
+            <History className="text-coins" size={24} strokeWidth={1.5} />
+            <h2 className="text-xl font-semibold text-dark-400">Recent Activity</h2>
           </div>
-          <div className="bg-dark-800 rounded-xl border border-dark-700 p-6">
+          
+          <div className="bg-dark-800 rounded-xl border border-dark-700 p-6 shadow-xl">
             {activities.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-dark-400">No activity yet</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {activities.map((activity) => {
                   const isIncoming = activity.to.email === currentUser?.email
                   const otherUser = isIncoming ? activity.from : activity.to
 
                   return (
-                    <div key={activity.id} className="flex items-center justify-between p-4 bg-dark-700/50 rounded-lg hover:bg-dark-700 transition-colors">
+                    <div key={activity.id} className="flex items-center justify-between p-4 bg-dark-700/50 rounded-lg hover:bg-dark-700 transition-colors border border-dark-700/50">
                       <div className="flex-1">
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-white text-base">
                           {activity.action}
                         </p>
-                        <p className="text-dark-400 text-sm mt-1">
-                          {isIncoming ? '📥 From' : '📤 To'} <span className="text-white font-medium">{otherUser.name}</span>
+                        <p className="text-dark-400 text-sm mt-1 flex items-center gap-1.5">
+                          {isIncoming ? (
+                            <><ArrowDownLeft size={16} className="text-green-400" /> From</>
+                          ) : (
+                            <><ArrowUpRight size={16} className="text-red-400" /> To</>
+                          )} 
+                          <span className="text-white font-medium ml-1">{otherUser.name}</span>
                         </p>
                       </div>
                       <div className="text-right">
                         <p className={`text-lg font-bold ${isIncoming ? 'text-green-400' : 'text-red-400'}`}>
                           {isIncoming ? '+' : '-'}{activity.amount}
                         </p>
-                        <p className="text-dark-400 text-xs mt-1">
+                        <p className="text-dark-400 text-xs mt-1 font-medium">
                           {new Date(activity.createdAt).toLocaleDateString('en-GB')}
                         </p>
                       </div>
@@ -221,6 +250,10 @@ export default function Home() {
             )}
           </div>
         </section>
+
+        
+
+        
       </main>
     </div>
   )

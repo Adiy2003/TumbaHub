@@ -153,7 +153,7 @@ export default function LeaderboardPage() {
       drag="x" 
       dragConstraints={{ left: 0, right: 0 }} 
       dragElastic={0.2} 
-      onDragEnd={(e, { offset }) => {
+      onDragEnd={(_, { offset }) => {
         // אם המשתמש משך ימינה יותר מ-100 פיקסלים
         if (offset.x > 100) {
           router.push('/')

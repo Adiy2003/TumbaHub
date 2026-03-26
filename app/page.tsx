@@ -176,7 +176,7 @@ export default function Home() {
       drag="x" // מאפשר גרירה רק על ציר ה-X (ימינה שמאלה)
       dragConstraints={{ left: 0, right: 0 }} // העמוד "מתנגד" וחוזר למקום כמו קפיץ
       dragElastic={0.2} // כמה "נמתח" העמוד כשמושכים אותו
-      onDragEnd={(e, { offset }) => {
+      onDragEnd={(_, { offset }) => {
         // אם המשתמש משך שמאלה יותר מ-100 פיקסלים
         if (offset.x < -100) {
           router.push('/leaderboard')

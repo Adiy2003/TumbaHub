@@ -7,6 +7,7 @@ import { Store, Dices, TrendingUp, History } from 'lucide-react'
 import ShopTab from '@/components/ShopTab'
 import BetsTab from '@/components/BetsTab'
 import BetHistoryTab from '@/components/BetHistoryTab'
+import { motion } from 'framer-motion'
 
 type TabType = 'shop' | 'bets' | 'history'
 
@@ -14,7 +15,12 @@ export default function TumbaConomyPage() {
   const [activeTab, setActiveTab] = useState<TabType>('shop')
 
   return (
-    <div className="min-h-screen bg-dark-900 pb-24">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen bg-dark-900 pb-24"
+    >
       {/* Header */}
       <header className="border-b border-dark-700 bg-dark-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -77,6 +83,6 @@ export default function TumbaConomyPage() {
           {activeTab === 'history' && <BetHistoryTab />}
         </div>
       </main>
-    </div>
+    </motion.div>
   )
 }

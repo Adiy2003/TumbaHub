@@ -1,6 +1,9 @@
+'use client'
+
 import { CoinIcon } from './CoinIcon'
 import Image from 'next/image'
 import { Car, Home } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 // הוספנו את שני השדות החדשים לממשק של המשתמש!
 interface User {
@@ -21,11 +24,14 @@ interface BalanceCardProps {
 
 export default function BalanceCard({ user, isCurrentUser = false }: BalanceCardProps) {
   return (
-    <div
-      className={`rounded-xl p-8 backdrop-blur-sm border transition-all duration-300 hover:scale-105 flex flex-col h-full ${
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.96 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`rounded-xl p-8 backdrop-blur-sm border flex flex-col h-full cursor-pointer ${
         isCurrentUser
           ? 'bg-gradient-to-br from-dark-800 to-dark-700 border-coins/50 shadow-lg shadow-coins/20'
-          : 'bg-dark-800 border-dark-700 hover:border-dark-600'
+          : 'bg-dark-800 border-dark-700'
       }`}
     >
       <div className="flex items-center justify-between mb-4">
@@ -94,6 +100,6 @@ export default function BalanceCard({ user, isCurrentUser = false }: BalanceCard
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

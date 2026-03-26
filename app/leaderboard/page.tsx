@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import BalanceCard from '@/components/BalanceCard'
 import { X, Crown, Car, Home, Award } from 'lucide-react'
+import { motion, Variants } from 'framer-motion'
+import { useRouter } from 'next/navigation' // חשוב: מתוך navigation ולא router
 
 interface User {
   id: string
@@ -33,6 +35,7 @@ interface Activity {
 
 export default function LeaderboardPage() {
   const [users, setUsers] = useState<User[]>([])
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
@@ -114,6 +117,21 @@ export default function LeaderboardPage() {
   const topDriver = users.length > 0 ? [...users].sort((a, b) => (b.driveCount || 0) - (a.driveCount || 0))[0] : null
   const topHost = users.length > 0 ? [...users].sort((a, b) => (b.hostCount || 0) - (a.hostCount || 0))[0] : null
 
+  // --- חוקי אנימציה לטבלת הלידרבורד ---
+  const tableVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08 } // קצת יותר מהיר (0.08) כדי שיהיה קצבי!
+    }
+  }
+
+  const rowVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300 } }
+  }
+  // --- סוף חוקי האנימציה ---
+ 
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
@@ -125,8 +143,24 @@ export default function LeaderboardPage() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-dark-900 pb-24 relative">
+ return (
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen bg-dark-900 pb-24 overflow-hidden"
+      
+      drag="x" 
+      dragConstraints={{ left: 0, right: 0 }} 
+      dragElastic={0.2} 
+      onDragEnd={(e, { offset }) => {
+        // אם המשתמש משך ימינה יותר מ-100 פיקסלים
+        if (offset.x > 100) {
+          router.push('/')
+        }
+      }}
+    >
+    
       <header className="border-b border-dark-700 bg-dark-800 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center gap-2">
@@ -182,11 +216,18 @@ export default function LeaderboardPage() {
                 <th className="px-2 sm:px-6 py-4 text-right text-xs sm:text-sm font-semibold text-dark-400 uppercase tracking-wider">Balance</th>
               </tr>
             </thead>
-            <tbody>
+            {/* מחליפים את tbody ב-motion.tbody ומוסיפים את החוקים */}
+            <motion.tbody 
+              variants={tableVariants}
+              initial="hidden"
+              animate="show"
+            >
               {users.map((user, index) => {
                 const isNegative = user.balance < 0
                 return (
-                  <tr
+                  // מחליפים את tr ב-motion.tr ומוסיפים את חוקי השורה
+                  <motion.tr
+                    variants={rowVariants}
                     key={user.id}
                     onClick={() => setSelectedUser(user)}
                     className={`border-b border-dark-700 transition-colors hover:bg-dark-700/50 cursor-pointer ${
@@ -220,10 +261,10 @@ export default function LeaderboardPage() {
                         {user.balance.toLocaleString()}
                       </span>
                     </td>
-                  </tr>
+                  </motion.tr>
                 )
               })}
-            </tbody>
+            </motion.tbody>
           </table>
         </div>
 
@@ -256,6 +297,6 @@ export default function LeaderboardPage() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

@@ -9,6 +9,8 @@ import Image from 'next/image'
 import BalanceCard from '@/components/BalanceCard'
 import CalendarWidget from '@/components/CalendarWidget'
 import { User, Car, Frown, History, ArrowDownLeft, ArrowUpRight, CalendarDays } from 'lucide-react'
+import { motion, Variants } from 'framer-motion'
+import { useRouter } from 'next/navigation' // חשוב: מתוך navigation ולא router
 
 // עדכנו את הממשק כדי שיכיל את התאריכים החדשים ואת הספירות!
 interface User {
@@ -38,6 +40,7 @@ interface Activity {
 
 export default function Home() {
   const { data: session } = useSession()
+  const router = useRouter()
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
   const [taxiDriver, setTaxiDriver] = useState<User | null>(null)
@@ -136,6 +139,21 @@ export default function Home() {
     return new Date(time).toLocaleDateString('en-GB')
   }
 
+  // --- התחלת חוקי האנימציה לרשימה ---
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  }
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, x: -20 },
+    show: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 300 } }
+  }
+  // --- סוף חוקי האנימציה ---
+
   if (loading) {
     return (
       <div className="min-h-screen bg-dark-900 flex items-center justify-center">
@@ -147,8 +165,25 @@ export default function Home() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-dark-900 pb-24">
+ return (
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen bg-dark-900 pb-24 overflow-hidden" // הוספנו overflow-hidden שלא יהיה פס גלילה מגעיל
+      
+      // --- חוקי ההחלקה מתחילים פה ---
+      drag="x" // מאפשר גרירה רק על ציר ה-X (ימינה שמאלה)
+      dragConstraints={{ left: 0, right: 0 }} // העמוד "מתנגד" וחוזר למקום כמו קפיץ
+      dragElastic={0.2} // כמה "נמתח" העמוד כשמושכים אותו
+      onDragEnd={(e, { offset }) => {
+        // אם המשתמש משך שמאלה יותר מ-100 פיקסלים
+        if (offset.x < -100) {
+          router.push('/leaderboard')
+        }
+      }}
+      // --- סוף חוקי ההחלקה ---
+    >
       {/* Header */}
       <header className="border-b border-dark-700 bg-dark-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -164,23 +199,32 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Current User Balance */}
-        {currentUser && (
-          <section className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
-              
-              <Link
-                href="/transactions"
-                className="text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
-              >
-                Make a Transaction
-              </Link>
-            </div>
-            
-            <BalanceCard user={currentUser} isCurrentUser={true} />
-          </section>
-        )}
+  {/* Current User Balance */}
+  {currentUser && (
+    <section className="mb-16">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
+        
+        {/* העטיפה של האנימציה */}
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        >
+          <Link
+            href="/transactions"
+            className="block text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
+          >
+            Make a Transaction
+          </Link>
+        </motion.div>
+        {/* סוף העטיפה */}
+
+      </div>
+      
+      <BalanceCard user={currentUser} isCurrentUser={true} />
+    </section>
+  )}
 
         {/* This Weekend's Taxi Driver */}
         {taxiDriver && (
@@ -238,18 +282,27 @@ export default function Home() {
                 <p className="text-dark-400">No activity yet</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+              // 1. ה-div העוטף הפך ל-motion.div שמקבל את חוקי הקונטיינר!
+              <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                animate="show"
+                className="space-y-3 max-h-96 overflow-y-auto pr-2"
+              >
                 {activities.map((activity) => {
-                  // זיהוי בטוח אם הפעולה היא נכנסת או יוצאת
                   const isIncoming = activity.toId === currentUser?.id || activity.toEmail === currentUser?.email || (activity.to && activity.to.email === currentUser?.email)
                   
-                  // אם השדות החדשים קיימים نשתמש בהם, אחרת ניפול חזרה למבנה הישן
                   const otherUserName = isIncoming 
                     ? (activity.from?.name || 'Someone') 
                     : (activity.to?.name || 'Someone')
 
                   return (
-                    <div key={activity.id} className="flex items-center justify-between p-4 bg-dark-700/50 rounded-lg hover:bg-dark-700 transition-colors border border-dark-700/50">
+                    // 2. כל שורה הפכה ל-motion.div שמקבלת את חוקי האייטם!
+                    <motion.div 
+                      variants={itemVariants}
+                      key={activity.id} 
+                      className="flex items-center justify-between p-4 bg-dark-700/50 rounded-lg hover:bg-dark-700 transition-colors border border-dark-700/50"
+                    >
                       <div className="flex-1">
                         <p className="font-medium text-white text-base">
                           {activity.action}
@@ -271,14 +324,14 @@ export default function Home() {
                           {formatActivityDate(activity.createdAt)}
                         </p>
                       </div>
-                    </div>
+                    </motion.div>
                   )
                 })}
-              </div>
+              </motion.div>
             )}
           </div>
         </section>
       </main>
-    </div>
+    </motion.div>
   )
 }

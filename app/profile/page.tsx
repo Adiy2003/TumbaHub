@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 
 interface User {
   id: string
@@ -329,8 +330,13 @@ export default function ProfilePage() {
     )
   }
 
-  return (
-    <div className="min-h-screen bg-dark-900 pb-24">
+ return (
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen bg-dark-900 pb-24"
+    >
       {/* Header */}
       <header className="border-b border-dark-700 bg-dark-800 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -792,6 +798,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

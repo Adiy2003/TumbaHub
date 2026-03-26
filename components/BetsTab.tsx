@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-
+import { motion, AnimatePresence } from 'framer-motion' // הוספנו את כלי האנימציה!
 
 interface Bet {
   id: string
@@ -88,8 +88,11 @@ export default function BetsPage() {
 
       setMessage('✅ Bet created successfully!')
       setFormData({ title: '', sideA: '', sideB: '', amount: '', chosenSide: 'A' })
-      setShowForm(false)
+      
+      // נחכה קצת שהמשתמש יראה את הודעת ההצלחה ואז נסגור את הטופס
       await new Promise(resolve => setTimeout(resolve, 1000))
+      setShowForm(false)
+      setMessage('') // מנקים את ההודעה לקראת הפעם הבאה
       fetchBets()
     } catch (error) {
       setMessage('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'))
@@ -138,110 +141,135 @@ export default function BetsPage() {
 
   return (
     <div className="min-h-screen bg-dark-900 pb-24">
-      
-
-      {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Create Bet Form */}
-        {showForm && (
-          <div className="bg-dark-800 rounded-xl border border-dark-700 p-6 mb-12">
-            <h2 className="text-xl font-semibold text-white mb-6">Create a New Bet</h2>
-            <form onSubmit={handleCreateBet} className="space-y-4">
-              {message && (
-                <div className={`p-4 rounded-lg text-sm font-medium ${message.includes('✅') ? 'bg-green-900/20 border border-green-700 text-green-400' : 'bg-red-900/20 border border-red-700 text-red-400'}`}>
-                  {message}
-                </div>
-              )}
+        
+        {/* --- אזור הכותרת והכפתור החדש! --- */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-white">Active Bets</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+            onClick={() => setShowForm(!showForm)}
+            className={`px-4 py-2 font-bold rounded-lg shadow-lg transition-colors ${
+              showForm 
+                ? 'bg-dark-700 text-white hover:bg-dark-600 border border-dark-600' 
+                : 'bg-coins text-dark-900 hover:bg-yellow-400 shadow-coins/20'
+            }`}
+          >
+            {showForm ? 'Cancel' : '+ New Bet'}
+          </motion.button>
+        </div>
 
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">Bet Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Will Alex beat John in FIFA?"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
-                />
-              </div>
+        {/* --- Create Bet Form עם אנימציית החלקה --- */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
+              animate={{ height: 'auto', opacity: 1, marginBottom: 48 }} // 48px = mb-12
+              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="bg-dark-800 rounded-xl border border-dark-700 p-6">
+                <h2 className="text-xl font-semibold text-white mb-6">Create a New Bet</h2>
+                <form onSubmit={handleCreateBet} className="space-y-4">
+                  {message && (
+                    <div className={`p-4 rounded-lg text-sm font-medium ${message.includes('✅') ? 'bg-green-900/20 border border-green-700 text-green-400' : 'bg-red-900/20 border border-red-700 text-red-400'}`}>
+                      {message}
+                    </div>
+                  )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-dark-400 mb-2">Side A</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Yes"
-                    value={formData.sideA}
-                    onChange={(e) => setFormData({ ...formData, sideA: e.target.value })}
-                    className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-dark-400 mb-2">Side B</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., No"
-                    value={formData.sideB}
-                    onChange={(e) => setFormData({ ...formData, sideB: e.target.value })}
-                    className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-2">Bet Amount (TumbaCoins)</label>
-                <input
-                  type="number"
-                  placeholder="100"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-dark-400 mb-3">Which side are you voting for?</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="flex items-center gap-3 p-3 bg-dark-700 border border-dark-600 rounded-lg cursor-pointer hover:border-coins transition-colors">
+                  <div>
+                    <label className="block text-sm font-medium text-dark-400 mb-2">Bet Title</label>
                     <input
-                      type="radio"
-                      name="chosenSide"
-                      value="A"
-                      checked={formData.chosenSide === 'A'}
-                      onChange={() => setFormData({ ...formData, chosenSide: 'A' })}
-                      className="w-4 h-4 cursor-pointer"
+                      type="text"
+                      placeholder="e.g., Will Alex beat John in FIFA?"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
                     />
-                    <span className="text-white font-medium">{formData.sideA || 'Side A'}</span>
-                  </label>
-                  <label className="flex items-center gap-3 p-3 bg-dark-700 border border-dark-600 rounded-lg cursor-pointer hover:border-coins transition-colors">
-                    <input
-                      type="radio"
-                      name="chosenSide"
-                      value="B"
-                      checked={formData.chosenSide === 'B'}
-                      onChange={() => setFormData({ ...formData, chosenSide: 'B' })}
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                    <span className="text-white font-medium">{formData.sideB || 'Side B'}</span>
-                  </label>
-                </div>
-              </div>
+                  </div>
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-coins text-dark-900 font-semibold py-2 rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50"
-              >
-                {submitting ? 'Creating...' : 'Create Bet'}
-              </button>
-            </form>
-          </div>
-        )}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-dark-400 mb-2">Side A</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Yes"
+                        value={formData.sideA}
+                        onChange={(e) => setFormData({ ...formData, sideA: e.target.value })}
+                        className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-dark-400 mb-2">Side B</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., No"
+                        value={formData.sideB}
+                        onChange={(e) => setFormData({ ...formData, sideB: e.target.value })}
+                        className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-dark-400 mb-2">Bet Amount (TumbaCoins)</label>
+                    <input
+                      type="number"
+                      placeholder="100"
+                      value={formData.amount}
+                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                      className="w-full bg-dark-700 border border-dark-600 rounded-lg px-4 py-2 text-white placeholder-dark-600 focus:outline-none focus:border-coins focus:ring-1 focus:ring-coins"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-dark-400 mb-3">Which side are you voting for?</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <label className="flex items-center gap-3 p-3 bg-dark-700 border border-dark-600 rounded-lg cursor-pointer hover:border-coins transition-colors">
+                        <input
+                          type="radio"
+                          name="chosenSide"
+                          value="A"
+                          checked={formData.chosenSide === 'A'}
+                          onChange={() => setFormData({ ...formData, chosenSide: 'A' })}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                        <span className="text-white font-medium">{formData.sideA || 'Side A'}</span>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 bg-dark-700 border border-dark-600 rounded-lg cursor-pointer hover:border-coins transition-colors">
+                        <input
+                          type="radio"
+                          name="chosenSide"
+                          value="B"
+                          checked={formData.chosenSide === 'B'}
+                          onChange={() => setFormData({ ...formData, chosenSide: 'B' })}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                        <span className="text-white font-medium">{formData.sideB || 'Side B'}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-coins text-dark-900 font-semibold py-2 rounded-lg hover:bg-yellow-300 transition-colors disabled:opacity-50 mt-4"
+                  >
+                    {submitting ? 'Creating...' : 'Create Bet'}
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Bets Feed */}
         <section>
-          <h2 className="text-xl font-semibold text-dark-400 mb-6">Open Bets</h2>
           {bets.length === 0 ? (
-            <div className="bg-dark-800 rounded-xl border border-dark-700 p-12 text-center">
+            <div className="bg-dark-800 rounded-xl border border-dark-700 p-12 text-center mt-6">
               <p className="text-dark-400 text-lg">No bets yet. Be the first to create one!</p>
             </div>
           ) : (

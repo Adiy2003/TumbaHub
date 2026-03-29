@@ -11,6 +11,7 @@ import CalendarWidget from '@/components/CalendarWidget'
 import { User, Car, Frown, History, ArrowDownLeft, ArrowUpRight, CalendarDays } from 'lucide-react'
 import { motion, Variants } from 'framer-motion'
 import { useRouter } from 'next/navigation' // חשוב: מתוך navigation ולא router
+import NotificationRequest from '@/components/NotificationRequest'
 
 // עדכנו את הממשק כדי שיכיל את התאריכים החדשים ואת הספירות!
 interface User {
@@ -199,32 +200,36 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-  {/* Current User Balance */}
-  {currentUser && (
-    <section className="mb-16">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
         
-        {/* העטיפה של האנימציה */}
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          <Link
-            href="/transactions"
-            className="block text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
-          >
-            Make a Transaction
-          </Link>
-        </motion.div>
-        {/* סוף העטיפה */}
+        {/* --- בקשת ההתראות תופיע כאן! --- */}
+        <NotificationRequest />
 
-      </div>
-      
-      <BalanceCard user={currentUser} isCurrentUser={true} />
-    </section>
-  )}
+        {/* Current User Balance */}
+        {currentUser && (
+          <section className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-dark-400">Your Balance</h2>
+              
+              {/* העטיפה של האנימציה */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Link
+                  href="/transactions"
+                  className="block text-sm px-4 py-2 bg-coins text-dark-900 font-bold rounded-lg hover:bg-yellow-400 transition-colors shadow-lg shadow-coins/20"
+                >
+                  Make a Transaction
+                </Link>
+              </motion.div>
+              {/* סוף העטיפה */}
+
+            </div>
+            
+            <BalanceCard user={currentUser} isCurrentUser={true} />
+          </section>
+        )}
 
         {/* This Weekend's Taxi Driver */}
         {taxiDriver && (

@@ -1,5 +1,6 @@
 import { adminDb } from './firebase-admin'
 import { Timestamp } from 'firebase-admin/firestore'
+import { getMessaging } from 'firebase-admin/messaging' // הוספנו את מנוע הפושים!
 
 export type NotificationType = 'shop_purchase' | 'admin_bonus' | 'transfer' | 'bet_created' | 'bet_won' | 'bet_lost' | 'wheel_spin'
 
@@ -26,7 +27,7 @@ interface CreateNotificationParams {
 }
 
 /**
- * Create notifications for one or more users
+ * Create notifications for one or more users AND send push notifications! 🚀
  */
 export async function createNotifications({
   type,
@@ -38,8 +39,10 @@ export async function createNotifications({
 }: CreateNotificationParams): Promise<void> {
   const batch = adminDb.batch()
   const timestamp = Timestamp.now()
+  const pushTokens: string[] = [] // מערך שיאסוף את כל הטוקנים של המכשירים
 
   for (const recipientId of recipientIds) {
+    // 1. יצירת ההתראה הפנימית לדאטה-בייס
     const notifRef = adminDb
       .collection('users')
       .doc(recipientId)
@@ -57,9 +60,41 @@ export async function createNotifications({
       read: false,
       createdAt: timestamp,
     })
+
+    // 2. שולפים את המשתמש כדי לראות אם יש לו טוקנים של התראות לטלפון (fcmTokens)
+    try {
+      const userDoc = await adminDb.collection('users').doc(recipientId).get()
+      const userData = userDoc.data()
+      
+      if (userData?.fcmTokens && Array.isArray(userData.fcmTokens)) {
+        // מכניסים את הטוקנים שלו למערך השיגור שלנו
+        pushTokens.push(...userData.fcmTokens)
+      }
+    } catch (error) {
+      console.error(`Failed to fetch user ${recipientId} for push tokens:`, error)
+    }
   }
 
+  // 3. שומרים את ההתראות בדאטה-בייס כמו תמיד
   await batch.commit()
+
+  // 4. בום! אם אספנו טוקנים, יורים את הפוש לכולם במקביל
+  if (pushTokens.length > 0) {
+    try {
+      const pushMessage = {
+        notification: {
+          title: title,
+          body: message,
+        },
+        tokens: pushTokens, // יורה לכל המכשירים שנאספו!
+      }
+
+      const response = await getMessaging().sendEachForMulticast(pushMessage)
+      console.log(`🚀 Push sent! Success: ${response.successCount}, Failed: ${response.failureCount}`)
+    } catch (error) {
+      console.error('❌ Error sending push notifications:', error)
+    }
+  }
 }
 
 /**
